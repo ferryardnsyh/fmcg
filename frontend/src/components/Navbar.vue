@@ -40,7 +40,7 @@
                 <span class="title-text">{{ n.title }}</span>
                 <span v-if="!n.is_read" class="u-dot"></span>
               </div>
-              <div class="panel-time">{{ formatTime(n.created_at) }}</div>
+              <div class="panel-time">{{ formatNotificationTime(n.created_at) }}</div>
             </div>
             <button class="btn btn-sm btn-block view-all" @click="goToAll">Lihat Semua</button>
           </div>
@@ -73,7 +73,8 @@ import notificationService from "../services/notification";
 import { toggleSidebar } from "../composables/useLayout";
 import { authUser, clearAuthUser } from "../stores/auth";
 import { POLLING } from "../constants/app";
-import { formatDate, timeAgo } from "../utils/date";
+import { formatDate } from "../utils/date";
+import { formatNotificationTime, notificationPath } from "../utils/notification";
 import { notifyActionError } from "../services/apiNotifier";
 
 defineProps({ title: { type: String, default: "Dashboard" } });
@@ -136,10 +137,6 @@ function handleOutsideClick(e) {
   }
 }
 
-function formatTime(dateStr) {
-  return timeAgo(dateStr);
-}
-
 async function clickNotif(n) {
   if (!n.is_read) {
     try {
@@ -153,11 +150,7 @@ async function clickNotif(n) {
   }
   showNotifPanel.value = false;
   if (n.reference_type) {
-    const map = {
-      inbound: "/barang-masuk", outbound: "/barang-keluar", product: "/produk",
-      batch: "/batch", adjustment: "/stok", opname_session: "/stock-opname", user: "/user",
-    };
-    const path = map[n.reference_type];
+    const path = notificationPath(n.reference_type);
     if (path) { router.push(path); return; }
   }
   router.push("/notifications");

@@ -1,3 +1,5 @@
+import { toFiniteNumber } from "../utils/number";
+
 export const OPNAME_STATUS = Object.freeze({
   DRAFT: "DRAFT",
   IN_PROGRESS: "IN_PROGRESS",
@@ -52,9 +54,7 @@ export function opnameDetailId(detail) {
 }
 
 export function toNumericQuantity(value, fallback = 0) {
-  if (value === null || value === undefined || value === "") return fallback;
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
+  return toFiniteNumber(value, fallback);
 }
 
 export function opnameDifference(detail) {

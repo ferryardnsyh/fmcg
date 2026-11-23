@@ -2,6 +2,8 @@
 
 namespace App\Auth;
 
+use App\Support\WmsPolicy;
+
 class CurrentUser
 {
     private int $idUser;
@@ -27,8 +29,8 @@ class CurrentUser
             (int) $id,
             (string) ($user['name'] ?? ''),
             (string) ($user['username'] ?? ''),
-            strtoupper(trim((string) ($user['role'] ?? ''))),
-            (string) ($user['status'] ?? 'AKTIF')
+            WmsPolicy::normalizeRole($user['role'] ?? ''),
+            (string) ($user['status'] ?? WmsPolicy::STATUS_ACTIVE)
         );
     }
 

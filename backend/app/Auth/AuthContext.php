@@ -2,15 +2,16 @@
 
 namespace App\Auth;
 
+use App\Support\WmsPolicy;
 use Config\Database;
 use RuntimeException;
 
 class AuthContext
 {
     private const ROLE_HIERARCHY = [
-        'SUPERADMIN' => ['SUPERADMIN'],
-        'ADMIN'      => ['SUPERADMIN', 'ADMIN'],
-        'GUDANG'     => ['SUPERADMIN', 'ADMIN', 'GUDANG'],
+        WmsPolicy::ROLE_SUPERADMIN => [WmsPolicy::ROLE_SUPERADMIN],
+        WmsPolicy::ROLE_ADMIN      => [WmsPolicy::ROLE_SUPERADMIN, WmsPolicy::ROLE_ADMIN],
+        WmsPolicy::ROLE_GUDANG     => [WmsPolicy::ROLE_SUPERADMIN, WmsPolicy::ROLE_ADMIN, WmsPolicy::ROLE_GUDANG],
     ];
 
     protected $db;
@@ -18,7 +19,7 @@ class AuthContext
     private ?CurrentUser $user = null;
     private ?string $cacheKey = null;
     private bool $primed = false;
-    private string $failure = 'no_session';
+    private string $failure = WmsPolicy::FAILURE_NO_SESSION;
 
     public function __construct($db = null, ?CurrentUser $user = null)
     {
@@ -29,10 +30,15 @@ class AuthContext
         }
     }
 
+    public function hasSession(): bool
+    {
+        return (bool) session()->get('logged_in');
+    }
+
     public function current(): ?CurrentUser
     {
         if ($this->primed && $this->user !== null) {
-            $this->failure = 'ok';
+            $this->failure = WmsPolicy::FAILURE_OK;
 
             return $this->user;
         }
@@ -40,16 +46,16 @@ class AuthContext
         $key = $this->sessionKey();
 
         if ($this->user !== null && $this->cacheKey === $key) {
-            $this->failure = 'ok';
+            $this->failure = WmsPolicy::FAILURE_OK;
 
             return $this->user;
         }
 
         $this->user     = null;
         $this->cacheKey = null;
-        $this->failure  = 'no_session';
+        $this->failure  = WmsPolicy::FAILURE_NO_SESSION;
 
-        if (!session()->get('logged_in')) {
+        if (!$this->hasSession()) {
             return null;
         }
 
@@ -60,7 +66,7 @@ class AuthContext
         ]);
 
         if ($id === false) {
-            $this->failure = 'invalid_id';
+            $this->failure = WmsPolicy::FAILURE_INVALID_ID;
 
             return null;
         }
@@ -74,20 +80,20 @@ class AuthContext
             ->getRowArray();
 
         if (!$row) {
-            $this->failure = 'not_found';
+            $this->failure = WmsPolicy::FAILURE_NOT_FOUND;
 
             return null;
         }
 
-        if (($row['status'] ?? null) !== 'AKTIF') {
-            $this->failure = 'inactive';
+        if (($row['status'] ?? null) !== WmsPolicy::STATUS_ACTIVE) {
+            $this->failure = WmsPolicy::FAILURE_INACTIVE;
 
             return null;
         }
 
         $this->user     = CurrentUser::fromArray($row);
         $this->cacheKey = $key;
-        $this->failure  = 'ok';
+        $this->failure  = WmsPolicy::FAILURE_OK;
 
         return $this->user;
     }
@@ -134,7 +140,7 @@ class AuthContext
         $role = $user->toArray()['role'];
 
         foreach ((array) $required as $requiredRole) {
-            $requiredRole = strtoupper(trim((string) $requiredRole));
+            $requiredRole = WmsPolicy::normalizeRole($requiredRole);
 
             if (isset(self::ROLE_HIERARCHY[$requiredRole]) && in_array($role, self::ROLE_HIERARCHY[$requiredRole], true)) {
                 return true;
@@ -152,12 +158,12 @@ class AuthContext
             return false;
         }
 
-        $target = strtoupper(trim($role));
+        $target = WmsPolicy::normalizeRole($role);
 
         return match ($user->toArray()['role']) {
-            'SUPERADMIN' => true,
-            'ADMIN'      => in_array($target, ['ADMIN', 'GUDANG'], true),
-            default      => false,
+            WmsPolicy::ROLE_SUPERADMIN => true,
+            WmsPolicy::ROLE_ADMIN      => in_array($target, [WmsPolicy::ROLE_ADMIN, WmsPolicy::ROLE_GUDANG], true),
+            default                    => false,
         };
     }
 
@@ -187,8 +193,8 @@ class AuthContext
 
     private function primeUser(CurrentUser $user): void
     {
-        if ($user->toArray()['status'] !== 'AKTIF') {
-            $this->failure = 'inactive';
+        if ($user->toArray()['status'] !== WmsPolicy::STATUS_ACTIVE) {
+            $this->failure = WmsPolicy::FAILURE_INACTIVE;
 
             return;
         }
@@ -196,7 +202,7 @@ class AuthContext
         $this->user     = $user;
         $this->cacheKey = null;
         $this->primed   = true;
-        $this->failure  = 'ok';
+        $this->failure  = WmsPolicy::FAILURE_OK;
     }
 
     private function resetState(): void
@@ -204,7 +210,7 @@ class AuthContext
         $this->user     = null;
         $this->cacheKey = null;
         $this->primed   = false;
-        $this->failure  = 'no_session';
+        $this->failure  = WmsPolicy::FAILURE_NO_SESSION;
     }
 
     private function sessionKey(): string

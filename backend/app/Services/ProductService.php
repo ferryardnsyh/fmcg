@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Support\ValueRules;
+use App\Support\WmsPolicy;
 use App\Validation\MasterInput;
 use Config\Database;
 
@@ -141,8 +143,8 @@ class ProductService
 
     public function createProduct(array $data): array
     {
-        $data['name'] = trim(strip_tags((string)($data['name'] ?? '')));
-        $data['sku_code'] = trim(strip_tags((string)($data['sku_code'] ?? '')));
+        $data['name'] = ValueRules::cleanText($data['name'] ?? '');
+        $data['sku_code'] = ValueRules::cleanText($data['sku_code'] ?? '');
 
         $existingSku = $this->db->table('products')->where('sku_code', $data['sku_code'])->countAllResults();
         if ($existingSku > 0) {
@@ -169,7 +171,7 @@ class ProductService
             'brand_name'     => $data['brand_name'] ?? null,
             'unit'           => $data['unit'] ?? null,
             'minimum_stock'  => $minimumStock,
-            'status'         => $data['status'] ?? 'AKTIF',
+            'status'         => $data['status'] ?? WmsPolicy::STATUS_ACTIVE,
             'created_at'     => date('Y-m-d H:i:s'),
         ];
 
@@ -192,16 +194,16 @@ class ProductService
     public function updateProduct(string $id, array $data): array
     {
         if (isset($data['name'])) {
-            $data['name'] = trim(strip_tags((string)$data['name']));
+            $data['name'] = ValueRules::cleanText($data['name']);
         }
         if (isset($data['sku_code'])) {
-            $data['sku_code'] = trim(strip_tags((string)$data['sku_code']));
+            $data['sku_code'] = ValueRules::cleanText($data['sku_code']);
         }
         if (isset($data['brand_name'])) {
-            $data['brand_name'] = trim(strip_tags((string)$data['brand_name']));
+            $data['brand_name'] = ValueRules::cleanText($data['brand_name']);
         }
         if (isset($data['unit'])) {
-            $data['unit'] = trim(strip_tags((string)$data['unit']));
+            $data['unit'] = ValueRules::cleanText($data['unit']);
         }
 
         if (!empty($data['sku_code'])) {

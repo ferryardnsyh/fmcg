@@ -96,9 +96,7 @@
             <div class="d-flex align-items-center gap-2">
               <label class="text-muted small fw-semibold text-nowrap mb-0">Tampil</label>
               <select class="form-select form-select-sm" style="width:auto;min-width:100px" v-model.number="itemsPerPage" @change="resetPage()">
-                <option :value="10">10 / Halaman</option>
-                <option :value="20">20 / Halaman</option>
-                <option :value="50">50 / Halaman</option>
+                <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }} / Halaman</option>
               </select>
             </div>
             <button
@@ -133,15 +131,7 @@
                 <td>{{ formatDate(item.delivery_date) }}</td>
                 <td>
                   <StatusBadge
-                    :status="
-                      item.status === 'COMPLETED'
-                        ? 'SELESAI'
-                        : item.status === 'DRAFT'
-                        ? 'PENDING'
-                        : item.status === 'CANCELLED'
-                        ? 'EXPIRED'
-                        : item.status
-                    "
+                    :status="STATUS_BADGES[item.status] || item.status"
                     :label="statusLabel(item.status)"
                     class="rounded-pill px-2 py-1"
                   />
@@ -398,6 +388,7 @@ import Swal from "sweetalert2";
 import outboundService from "../../services/outbound";
 import productService from "../../services/product";
 import batchService from "../../services/batch";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import {
@@ -409,8 +400,9 @@ import {
   toNumericQuantity,
   validateOutboundDetails,
 } from "../../composables/useOutboundForm";
-import { MAX_QTY } from "../../constants/app";
+import { MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
 import { formatDate, todayIso } from "../../utils/date";
+import { STATUS_BADGES, STATUS_LABELS } from "../../utils/status";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -476,14 +468,7 @@ const {
 
 watch(searchQuery, resetPage);
 
-const statusLabel = (status) => {
-  const map = {
-    DRAFT: "Draft",
-    COMPLETED: "Selesai",
-    CANCELLED: "Dibatalkan",
-  };
-  return map[status] || status;
-};
+const statusLabel = (status) => STATUS_LABELS[status] || status;
 
 const loadOutbounds = async () => {
   try {
@@ -531,10 +516,8 @@ onMounted(() => {
   loadAll();
 });
 
-const createDetailRow = () => createOutboundDetailRow();
-
 const addDetailRow = () => {
-  details.value.push(createDetailRow());
+  details.value.push(createOutboundDetailRow());
 };
 
 const removeDetailRow = (idx) => {
@@ -650,7 +633,7 @@ const saveOutbound = async () => {
     modalInstance.hide();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
   } finally {
     saving.value = false;
@@ -674,7 +657,7 @@ const completeOutbound = async (item) => {
     await loadOutbounds();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Gagal complete pengeluaran.";
+    const msg = getActionErrorMessage(err, "Gagal complete pengeluaran.");
     Swal.fire("Gagal!", msg, "error");
   }
 };
@@ -695,7 +678,7 @@ const deleteOutbound = async (item) => {
     await loadOutbounds();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Gagal menghapus pengeluaran.";
+    const msg = getActionErrorMessage(err, "Gagal menghapus pengeluaran.");
     Swal.fire("Gagal!", msg, "error");
   }
 };

@@ -1,4 +1,5 @@
 import { MAX_QTY } from "../constants/app";
+import { isIntegerInRange, toFiniteNumber } from "../utils/number";
 
 export function normalizeAdjustmentStatus(status) {
   const value = String(status ?? "").trim().toUpperCase();
@@ -34,9 +35,7 @@ export function isAdjustmentPending(status) {
 }
 
 export function toAdjustmentQuantity(value, fallback = null) {
-  if (value === null || value === undefined || value === "") return fallback;
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
+  return toFiniteNumber(value, fallback);
 }
 
 export function formatAdjustmentQuantity(value) {
@@ -50,7 +49,7 @@ export function validateAdjustmentForm(form) {
     return "Tipe penyesuaian harus dipilih.";
   }
   const quantity = toAdjustmentQuantity(form?.quantity);
-  if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QTY) {
+  if (!isIntegerInRange(quantity, 1, MAX_QTY)) {
     return `Quantity harus bilangan bulat antara 1 dan ${MAX_QTY}.`;
   }
   if (!String(form?.reason || "").trim()) return "Alasan harus diisi.";

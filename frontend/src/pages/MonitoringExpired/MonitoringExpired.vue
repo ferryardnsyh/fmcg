@@ -140,7 +140,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import expiredService from "../../services/expired";
 import { usePagination } from "../../composables/usePagination";
 import { EXPIRED_THRESHOLD } from "../../constants/app";
-import { EXPIRED_CRITICAL_DAYS, normalizeExpiredItem } from "../../utils/expiredItems";
+import { normalizeExpiredItem } from "../../utils/expiredItems";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -157,7 +157,7 @@ const filter = ref({
   date_to: "",
 });
 
-const criticalDays = EXPIRED_CRITICAL_DAYS;
+const criticalDays = EXPIRED_THRESHOLD.CRITICAL_DAYS;
 
 const daysTone = (daysLeft) => {
   if (daysLeft <= criticalDays) return "EXPIRED";

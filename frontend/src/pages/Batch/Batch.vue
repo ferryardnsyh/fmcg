@@ -174,7 +174,7 @@ import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
 
-const CRITICAL_DAYS = 7;
+const CRITICAL_DAYS = EXPIRED_THRESHOLD.CRITICAL_DAYS;
 
 const searchQuery = ref("");
 const filterProduk = ref("");

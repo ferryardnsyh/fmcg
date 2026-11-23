@@ -93,9 +93,7 @@
             <div class="d-flex align-items-center gap-2">
               <label class="text-muted small fw-semibold text-nowrap mb-0">Tampil</label>
               <select class="form-select form-select-sm" style="width:auto;min-width:100px" v-model.number="itemsPerPage" @change="resetPage()">
-                <option :value="10">10 / Halaman</option>
-                <option :value="20">20 / Halaman</option>
-                <option :value="50">50 / Halaman</option>
+                <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }} / Halaman</option>
               </select>
             </div>
             <button
@@ -129,15 +127,7 @@
                 <td>{{ item.expiry_dates || '-' }}</td>
                 <td>
                   <StatusBadge
-                    :status="
-                      item.status === 'COMPLETED'
-                        ? 'SELESAI'
-                        : item.status === 'DRAFT'
-                        ? 'PENDING'
-                        : item.status === 'CANCELLED'
-                        ? 'EXPIRED'
-                        : item.status
-                    "
+                    :status="STATUS_BADGES[item.status] || item.status"
                     :label="statusLabel(item.status)"
                     class="rounded-pill px-3 py-1"
                   />
@@ -354,6 +344,7 @@ import Swal from "sweetalert2";
 import inboundService from "../../services/inbound";
 import supplierService from "../../services/supplier";
 import masterService from "../../services/master";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import {
@@ -361,8 +352,9 @@ import {
   createInboundDetailRow,
   validateInboundForm,
 } from "../../composables/useInboundForm";
-import { MAX_QTY } from "../../constants/app";
+import { MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
 import { formatDate, todayIso } from "../../utils/date";
+import { STATUS_BADGES, STATUS_LABELS } from "../../utils/status";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -394,14 +386,7 @@ const form = ref({
 
 const details = ref([]);
 
-const statusLabel = (status) => {
-  const map = {
-    DRAFT: "Draft",
-    COMPLETED: "Selesai",
-    CANCELLED: "Dibatalkan",
-  };
-  return map[status] || status;
-};
+const statusLabel = (status) => STATUS_LABELS[status] || status;
 
 const stats = computed(() => {
   const today = todayIso();
@@ -598,7 +583,7 @@ const saveInbound = async () => {
     modalInstance.hide();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
   } finally {
     saving.value = false;
@@ -622,7 +607,7 @@ const completeInbound = async (item) => {
     await loadInbound();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Gagal menyelesaikan penerimaan.";
+    const msg = getActionErrorMessage(err, "Gagal menyelesaikan penerimaan.");
     Swal.fire("Gagal!", msg, "error");
   }
 };
@@ -643,7 +628,7 @@ const deleteInbound = async (item) => {
     await loadInbound();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Gagal menghapus penerimaan.";
+    const msg = getActionErrorMessage(err, "Gagal menghapus penerimaan.");
     Swal.fire("Gagal!", msg, "error");
   }
 };

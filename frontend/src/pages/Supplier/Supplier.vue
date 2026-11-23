@@ -286,6 +286,8 @@ import { ref, computed, watch, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import Swal from "sweetalert2";
 import supplierService from "../../services/supplier";
+import { getActionErrorMessage } from "../../services/apiNotifier";
+import { SUPPLIER_PAGE_SIZE } from "../../constants/app";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
@@ -359,7 +361,7 @@ const {
   paginationEnd,
   changePage,
   resetPage,
-} = usePagination(filteredSuppliers, { perPage: 5 });
+} = usePagination(filteredSuppliers, { perPage: SUPPLIER_PAGE_SIZE });
 
 watch(searchQuery, resetPage);
 
@@ -422,7 +424,7 @@ const saveSupplier = async () => {
     modalInstance.hide();
   } catch (err) {
     const status = err.response?.status ? `(${err.response.status}) ` : "";
-    const msg = err.response?.data?.message || status + (err.message || "Terjadi kesalahan");
+    const msg = getActionErrorMessage(err, status + (err.message || "Terjadi kesalahan"));
     Swal.fire("Gagal!", msg, "error");
   } finally {
     saving.value = false;
@@ -445,7 +447,7 @@ const deleteSupplier = async (item) => {
     await loadSuppliers();
   } catch (err) {
     const status = err.response?.status ? `(${err.response.status}) ` : "";
-    const msg = err.response?.data?.message || status + (err.message || "Gagal menghapus supplier.");
+    const msg = getActionErrorMessage(err, status + (err.message || "Gagal menghapus supplier."));
     Swal.fire("Gagal!", msg, "error");
   }
 };

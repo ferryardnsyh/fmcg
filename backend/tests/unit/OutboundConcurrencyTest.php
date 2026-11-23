@@ -1,10 +1,14 @@
 <?php
 
+require_once __DIR__ . '/../_support/EnsuresOutboundIdRange.php';
+
 use CodeIgniter\Test\CIUnitTestCase;
 use Config\Database;
 
 final class OutboundConcurrencyTest extends CIUnitTestCase
 {
+    use EnsuresOutboundIdRange;
+
     private const EXPECTED_DATABASE = 'psswms_testing';
 
     protected $db;
@@ -18,6 +22,7 @@ final class OutboundConcurrencyTest extends CIUnitTestCase
         parent::setUp();
 
         $this->db = Database::connect('default');
+        $this->ensureOutboundIdRange($this->db);
         $active = $this->db->query('SELECT DATABASE() AS db_name')->getRowArray();
         $this->assertSame(self::EXPECTED_DATABASE, $active['db_name'] ?? null, 'Concurrency test harus memakai database testing.');
 

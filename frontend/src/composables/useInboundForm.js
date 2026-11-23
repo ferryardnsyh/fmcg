@@ -1,5 +1,8 @@
 import { MAX_QTY } from "../constants/app";
-import { todayIso } from "../utils/date";
+import { todayIso, isValidIsoDate } from "../utils/date";
+import { isIntegerInRange } from "../utils/number";
+
+export { isValidIsoDate };
 
 let rowSequence = 0;
 
@@ -13,13 +16,6 @@ export function createInboundDetailRow(source = {}) {
     expiry_date: source.expiry_date ?? "",
     id_rack: source.id_rack ?? "",
   };
-}
-
-export function isValidIsoDate(value) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 export function validateInboundForm(form, details) {
@@ -51,7 +47,7 @@ export function validateInboundForm(form, details) {
     if (seenBatch.has(batchKey)) return `Baris ${row}: Batch/Lot duplikat untuk produk yang sama.`;
     seenBatch.add(batchKey);
 
-    if (!Number.isInteger(detail.quantity) || detail.quantity < 1 || detail.quantity > MAX_QTY) {
+    if (!isIntegerInRange(detail.quantity, 1, MAX_QTY)) {
       return `Baris ${row}: Jumlah harus bilangan bulat antara 1 dan ${MAX_QTY}.`;
     }
     if (!isValidIsoDate(detail.expiry_date)) {

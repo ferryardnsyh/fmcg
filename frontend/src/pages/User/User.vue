@@ -356,6 +356,8 @@ import { ref, computed, watch, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import Swal from "sweetalert2";
 import userService from "../../services/user";
+import { getActionErrorMessage } from "../../services/apiNotifier";
+import { USER_PAGE_SIZE } from "../../constants/app";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
@@ -436,7 +438,7 @@ const {
   paginationEnd,
   changePage,
   resetPage,
-} = usePagination(filteredUsers, { perPage: 8 });
+} = usePagination(filteredUsers, { perPage: USER_PAGE_SIZE });
 
 watch(searchQuery, resetPage);
 
@@ -494,10 +496,11 @@ const saveUser = async () => {
     await loadUsers();
     userModalInstance.hide();
   } catch (err) {
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
+  } finally {
+    saving.value = false;
   }
-  saving.value = false;
 };
 
 const changePassword = async () => {
@@ -510,10 +513,11 @@ const changePassword = async () => {
     Swal.fire("Berhasil!", "Password berhasil diubah.", "success");
     passwordModalInstance.hide();
   } catch (err) {
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
+  } finally {
+    changingPassword.value = false;
   }
-  changingPassword.value = false;
 };
 
 const deleteUser = async (item) => {
@@ -538,7 +542,7 @@ const deleteUser = async (item) => {
     Swal.fire("Dihapus!", "User berhasil dihapus.", "success");
     await loadUsers();
   } catch (err) {
-    const msg = err.response?.data?.message || "Gagal menghapus user";
+    const msg = getActionErrorMessage(err, "Gagal menghapus user");
     Swal.fire("Gagal!", msg, "error");
   }
 };

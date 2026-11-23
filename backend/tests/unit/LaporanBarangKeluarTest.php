@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../_support/EnsuresOutboundIdRange.php';
+
 use App\Services\DashboardService;
 use App\Services\LaporanService;
 use App\Services\OutboundService;
@@ -8,6 +10,8 @@ use Config\Database;
 
 final class LaporanBarangKeluarTest extends CIUnitTestCase
 {
+    use EnsuresOutboundIdRange;
+
     protected $db;
     protected LaporanService $laporan;
     protected DashboardService $dashboard;
@@ -24,6 +28,7 @@ final class LaporanBarangKeluarTest extends CIUnitTestCase
         parent::setUp();
 
         $this->db = Database::connect('default');
+        $this->ensureOutboundIdRange($this->db);
         $this->db->transBegin();
         $this->laporan = $this->serviceWithDb(LaporanService::class);
         $this->dashboard = $this->serviceWithDb(DashboardService::class);

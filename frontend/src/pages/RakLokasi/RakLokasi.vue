@@ -244,15 +244,14 @@ import { ref, computed, onMounted, watch } from "vue";
 import * as bootstrap from "bootstrap";
 import Swal from "sweetalert2";
 import api from "../../services/api";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
-import { DEBOUNCE } from "../../constants/app";
+import { DEBOUNCE, RACK_PAGE_SIZE } from "../../constants/app";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
-
-const RACK_PAGE_SIZE = 5;
 
 const { isAdmin } = useAuth();
 const { confirm } = useConfirm();
@@ -421,7 +420,7 @@ const saveRak = async () => {
     modalInstance.hide();
   } catch (err) {
     const status = err.response?.status ? `(${err.response.status}) ` : "";
-    const msg = err.response?.data?.message || status + (err.message || "Terjadi kesalahan");
+    const msg = getActionErrorMessage(err, status + (err.message || "Terjadi kesalahan"));
     Swal.fire("Gagal!", msg, "error");
   } finally {
     saving.value = false;
@@ -444,7 +443,7 @@ const deleteRak = async (item) => {
     await reloadAfterChange();
   } catch (err) {
     const status = err.response?.status ? `(${err.response.status}) ` : "";
-    const msg = err.response?.data?.message || status + (err.message || "Gagal menghapus rak.");
+    const msg = getActionErrorMessage(err, status + (err.message || "Gagal menghapus rak."));
     Swal.fire("Gagal!", msg, "error");
   }
 };

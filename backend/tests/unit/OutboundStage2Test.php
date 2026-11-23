@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../_support/EnsuresOutboundIdRange.php';
+
 use App\Services\OutboundActorResolver;
 use App\Services\OutboundService;
 use CodeIgniter\Test\CIUnitTestCase;
@@ -9,6 +11,7 @@ use Config\Database;
 final class OutboundStage2Test extends CIUnitTestCase
 {
     use FeatureTestTrait;
+    use EnsuresOutboundIdRange;
 
     protected $db;
     protected OutboundService $service;
@@ -21,6 +24,7 @@ final class OutboundStage2Test extends CIUnitTestCase
         parent::setUp();
 
         $this->db = Database::connect('default');
+        $this->ensureOutboundIdRange($this->db);
         $this->db->transBegin();
         $this->service = new OutboundService($this->db);
         $this->resolver = new OutboundActorResolver($this->db);

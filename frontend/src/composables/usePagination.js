@@ -1,5 +1,5 @@
 import { computed, ref, watch } from "vue";
-import { paginationPages } from "../utils/pagination";
+import { paginationPages, paginationRange as getPaginationRange } from "../utils/pagination";
 import { PAGE_SIZE } from "../constants/app";
 
 export function usePagination(itemsRef, options = {}) {
@@ -17,17 +17,13 @@ export function usePagination(itemsRef, options = {}) {
     return (itemsRef.value || []).slice(start, start + itemsPerPage.value);
   });
 
-  const paginationStart = computed(() => {
-    const total = itemsRef.value?.length || 0;
-    if (total === 0) return 0;
-    return (currentPage.value - 1) * itemsPerPage.value + 1;
-  });
+  const range = computed(() =>
+    getPaginationRange(itemsRef.value?.length || 0, currentPage.value, itemsPerPage.value),
+  );
 
-  const paginationEnd = computed(() => {
-    const total = itemsRef.value?.length || 0;
-    const end = currentPage.value * itemsPerPage.value;
-    return end > total ? total : end;
-  });
+  const paginationStart = computed(() => range.value.start);
+
+  const paginationEnd = computed(() => range.value.end);
 
   function changePage(page) {
     if (page >= 1 && page <= totalPages.value) currentPage.value = page;

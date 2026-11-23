@@ -1,4 +1,5 @@
 import { MAX_QTY } from "../constants/app";
+import { isIntegerInRange, toFiniteNumber } from "../utils/number";
 
 let rowSequence = 0;
 
@@ -14,9 +15,7 @@ export function createOutboundDetailRow(source = {}) {
 }
 
 export function toNumericQuantity(value, fallback = 0) {
-  if (value === null || value === undefined || value === "") return fallback;
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : fallback;
+  return toFiniteNumber(value, fallback);
 }
 
 export function hasAvailableStock(batch) {
@@ -36,7 +35,7 @@ export function getStockLimit(row) {
 
 export function stockQuantityError(row) {
   const quantity = row?.quantity;
-  if (!Number.isInteger(quantity) || quantity < 1) {
+  if (!isIntegerInRange(quantity, 1)) {
     return "Jumlah harus bilangan bulat positif.";
   }
   if (quantity > MAX_QTY) return `Jumlah maksimal ${MAX_QTY}.`;
@@ -52,9 +51,7 @@ export function validateOutboundDetails(details) {
     if (
       !row.id_product ||
       !row.id_batch ||
-      !Number.isInteger(row.quantity) ||
-      row.quantity < 1 ||
-      row.quantity > MAX_QTY
+      !isIntegerInRange(row.quantity, 1, MAX_QTY)
     ) {
       return "Detail barang harus memiliki produk, batch, dan quantity bulat positif.";
     }

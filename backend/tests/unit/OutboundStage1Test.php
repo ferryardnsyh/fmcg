@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../_support/EnsuresOutboundIdRange.php';
+
 use App\Services\InboundService;
 use App\Services\OutboundService;
 use App\Services\ProductService;
@@ -8,6 +10,8 @@ use Config\Database;
 
 final class OutboundStage1Test extends CIUnitTestCase
 {
+    use EnsuresOutboundIdRange;
+
     protected $db;
     protected OutboundService $service;
     protected int $productId;
@@ -18,6 +22,7 @@ final class OutboundStage1Test extends CIUnitTestCase
         parent::setUp();
 
         $this->db = Database::connect('default');
+        $this->ensureOutboundIdRange($this->db);
         $this->db->transBegin();
         $this->service = new OutboundService($this->db);
         $this->db->table('users')->insert([

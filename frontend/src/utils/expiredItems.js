@@ -1,6 +1,8 @@
+import { EXPIRED_THRESHOLD } from "../constants/app";
 import { formatDate } from "./date";
+import { toFiniteNumber } from "./number";
 
-export const EXPIRED_CRITICAL_DAYS = 7;
+export const EXPIRED_CRITICAL_DAYS = EXPIRED_THRESHOLD.CRITICAL_DAYS;
 
 function firstValue(item, keys, fallback = "") {
   for (const key of keys) {
@@ -10,13 +12,8 @@ function firstValue(item, keys, fallback = "") {
   return fallback;
 }
 
-function toNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
-}
-
 export function normalizeExpiredItem(item) {
-  const rawDaysLeft = toNumber(
+  const rawDaysLeft = toFiniteNumber(
     firstValue(item, ["days_left", "sisa_hari", "days_remaining", "days_expired"], 0),
   );
   const daysLeft = Math.max(0, rawDaysLeft);

@@ -197,6 +197,7 @@ import { ref, computed, watch, onMounted } from "vue";
 import stockService from "../../services/stock";
 import { usePagination } from "../../composables/usePagination";
 import { formatDate } from "../../utils/date";
+import { STATUS_BADGES, STATUS_LABELS } from "../../utils/status";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -242,7 +243,8 @@ const stockStatus = (item) => {
 
 const statusTone = (status) => {
   const up = String(status || "").toUpperCase();
-  if (["COMPLETED", "APPROVED", "AVAILABLE"].includes(up)) return "SELESAI";
+  if (up === "COMPLETED") return STATUS_BADGES.COMPLETED;
+  if (["APPROVED", "AVAILABLE"].includes(up)) return "SELESAI";
   if (up === "CANCELLED") return "NONAKTIF";
   return up;
 };
@@ -250,9 +252,7 @@ const statusTone = (status) => {
 const statusLabel = (status) => {
   const up = (status || "").toUpperCase();
   const map = {
-    DRAFT: "Draft",
-    COMPLETED: "Selesai",
-    CANCELLED: "Dibatalkan",
+    ...STATUS_LABELS,
     PENDING: "Menunggu",
     APPROVED: "Disetujui",
     REJECTED: "Ditolak",

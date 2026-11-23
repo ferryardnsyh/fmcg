@@ -2,6 +2,7 @@
 
 namespace App\Validation;
 
+use App\Support\ValueRules;
 use Throwable;
 
 class MasterInput
@@ -100,24 +101,12 @@ class MasterInput
 
     public static function parseInteger(mixed $value, int $min, int $max): ?int
     {
-        if (is_int($value)) {
-            $number = $value;
-        } elseif (is_string($value) && preg_match('/^\d+$/', $value) === 1) {
-            $number = (int) $value;
-        } else {
-            return null;
-        }
-
-        return ($number >= $min && $number <= $max) ? $number : null;
+        return ValueRules::intInRange($value, $min, $max);
     }
 
     public static function isValidIsoDate(mixed $value): bool
     {
-        if (!is_string($value) || preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $parts) !== 1) {
-            return false;
-        }
-
-        return checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]);
+        return ValueRules::isValidIsoDate($value);
     }
 
     public static function isDuplicateConflict(Throwable $e, string $needle): bool

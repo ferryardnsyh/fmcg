@@ -8,6 +8,10 @@ use Throwable;
 
 abstract class ApiController extends BaseController
 {
+    /**
+     * Uses the caller's success/failure codes and always exposes the service payload unchanged.
+     * Services without a `code` field rely on this helper for their legacy status mapping.
+     */
     protected function respondServiceResult(array $result, int $successCode = 200, int $failureCode = 400): ResponseInterface
     {
         return $this->response
@@ -15,6 +19,10 @@ abstract class ApiController extends BaseController
             ->setJSON($result);
     }
 
+    /**
+     * Honours a `code` supplied by the service (injecting the failure code when absent) and can strip it
+     * for endpoints whose historical JSON never exposed `code`; it intentionally differs from respondServiceResult().
+     */
     protected function respondServiceResultWithCode(array $result, int $successCode = 200, int $failureCode = 400, bool $removeCode = false): ResponseInterface
     {
         if (empty($result['status']) && !isset($result['code'])) {

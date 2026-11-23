@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\Auth\AuthContext;
+use App\Support\WmsPolicy;
 use Config\Database;
 
 class OutboundActorResolver
 {
-    private const ALLOWED_ROLES = ['SUPERADMIN', 'ADMIN', 'GUDANG'];
-
     protected $db;
 
     protected AuthContext $context;
@@ -21,27 +20,27 @@ class OutboundActorResolver
 
     public function resolve(): array
     {
-        if (!session()->get('logged_in')) {
-            return $this->fail('Unauthorized. Silakan login terlebih dahulu.', 401);
+        if (!$this->context->hasSession()) {
+            return $this->fail(WmsPolicy::MESSAGE_UNAUTHORIZED, 401);
         }
 
         $user   = $this->context->current();
         $reason = $this->context->failureCode();
 
-        if ($reason === 'invalid_id') {
-            return $this->fail('Unauthorized. Silakan login terlebih dahulu.', 401);
+        if ($reason === WmsPolicy::FAILURE_INVALID_ID) {
+            return $this->fail(WmsPolicy::MESSAGE_UNAUTHORIZED, 401);
         }
 
         if ($user === null) {
             session()->destroy();
 
-            return $this->fail('Akun sudah dinonaktifkan. Silakan hubungi administrator.', 401);
+            return $this->fail(WmsPolicy::MESSAGE_INACTIVE_ACCOUNT, 401);
         }
 
         $actor = $user->toActor();
 
-        if (!in_array($actor['role'], self::ALLOWED_ROLES, true)) {
-            return $this->fail('Forbidden. Anda tidak memiliki akses ke transaksi outbound.', 403);
+        if (!in_array($actor['role'], WmsPolicy::ALLOWED_ROLES, true)) {
+            return $this->fail(WmsPolicy::MESSAGE_FORBIDDEN_OUTBOUND, 403);
         }
 
         return [

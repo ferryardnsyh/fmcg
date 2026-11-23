@@ -17,7 +17,7 @@ class InboundController extends ApiController
     {
         try {
             $result = $this->inboundService->getAll();
-            return $this->response->setStatusCode(200)->setJSON($result);
+            return $this->respondServiceResult($result);
         } catch (\Throwable $e) {
             return $this->respondException($e, 'Gagal memuat data inbound');
         }
@@ -80,7 +80,7 @@ class InboundController extends ApiController
     {
         try {
             $result = $this->inboundService->getProductsBySupplier($supplierId);
-            return $this->response->setStatusCode(200)->setJSON($result);
+            return $this->respondServiceResult($result);
         } catch (\Throwable $e) {
             return $this->respondException($e, 'Gagal memuat data produk');
         }

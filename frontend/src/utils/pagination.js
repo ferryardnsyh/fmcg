@@ -1,3 +1,11 @@
+export function paginationRange(total, page, perPage) {
+  if (!total) return { start: 0, end: 0 };
+  return {
+    start: (page - 1) * perPage + 1,
+    end: Math.min(page * perPage, total),
+  };
+}
+
 export function paginationPages(currentPage, totalPages, siblingCount = 2) {
   if (totalPages <= 1) return [1];
 

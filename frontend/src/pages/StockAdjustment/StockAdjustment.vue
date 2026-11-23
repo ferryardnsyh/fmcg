@@ -141,6 +141,7 @@ import { ref, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import Swal from "sweetalert2";
 import stockService from "../../services/stock";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import batchService from "../../services/batch";
 import { useAuth } from "../../stores/auth";
 import { useConfirm } from "../../composables/useConfirm";
@@ -227,7 +228,7 @@ const approveAdjustment = async (item) => {
     }
   } catch (err) {
     loadError.value = err;
-    Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan", "error");
+    Swal.fire("Gagal!", getActionErrorMessage(err, "Terjadi kesalahan"), "error");
   }
 };
 
@@ -251,7 +252,7 @@ const rejectAdjustment = async (item) => {
     }
   } catch (err) {
     loadError.value = err;
-    Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan", "error");
+    Swal.fire("Gagal!", getActionErrorMessage(err, "Terjadi kesalahan"), "error");
   }
 };
 
@@ -270,7 +271,7 @@ const saveAdjustment = async () => {
     await loadAdjustments();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
   } finally {
     saving.value = false;

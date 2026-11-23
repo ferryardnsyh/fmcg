@@ -191,9 +191,11 @@ import { ref, computed, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import Swal from "sweetalert2";
 import categoryService from "../../services/category";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import { useAuth } from "../../stores/auth";
 import { DEBOUNCE } from "../../constants/app";
 import { formatDate } from "../../utils/date";
+import { paginationRange as getPaginationRange } from "../../utils/pagination";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 
 const { isAdmin } = useAuth();
@@ -223,14 +225,11 @@ const totalPages = computed(() => {
   return Math.ceil(total.value / itemsPerPage.value);
 });
 
-const paginationStart = computed(() => {
-  if (!total.value) return 0;
-  return (page.value - 1) * itemsPerPage.value + 1;
-});
+const range = computed(() => getPaginationRange(total.value, page.value, itemsPerPage.value));
 
-const paginationEnd = computed(() => {
-  return Math.min(page.value * itemsPerPage.value, total.value);
-});
+const paginationStart = computed(() => range.value.start);
+
+const paginationEnd = computed(() => range.value.end);
 
 const loadCategories = async () => {
   loading.value = true;
@@ -286,7 +285,7 @@ const openAddModal = async () => {
       form.value.category_code = res.data.data.category_code;
     }
   } catch (err) {
-    const msg = err.response?.data?.message || "Kode otomatis gagal dimuat. Silakan isi kode kategori secara manual.";
+    const msg = getActionErrorMessage(err, "Kode otomatis gagal dimuat. Silakan isi kode kategori secara manual.");
     Swal.fire("Perhatian", msg, "warning");
   }
   modalInstance.show();
@@ -329,7 +328,7 @@ const saveCategory = async () => {
     modalInstance.hide();
     await loadCategories();
   } catch (err) {
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal", msg, "error");
   } finally {
     saving.value = false;
@@ -353,7 +352,7 @@ const deleteCategory = (item) => {
         Swal.fire("Berhasil", "Kategori berhasil dihapus", "success");
         await loadCategories();
       } catch (err) {
-        const msg = err.response?.data?.message || "Terjadi kesalahan";
+        const msg = getActionErrorMessage(err, "Terjadi kesalahan");
         Swal.fire("Gagal", msg, "error");
       }
     }

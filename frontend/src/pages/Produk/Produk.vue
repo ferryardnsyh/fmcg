@@ -107,9 +107,7 @@
               <div class="d-flex align-items-center gap-2">
                 <label class="text-muted small fw-semibold text-nowrap mb-0">Tampil</label>
                 <select class="form-select form-select-sm" style="width:auto;min-width:100px" v-model.number="itemsPerPage" @change="resetPage">
-                  <option :value="10">10 / Halaman</option>
-                  <option :value="20">20 / Halaman</option>
-                  <option :value="50">50 / Halaman</option>
+                  <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }} / Halaman</option>
                 </select>
               </div>
               <button
@@ -308,11 +306,13 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import * as bootstrap from "bootstrap";
 import productService from "../../services/product";
 import masterService from "../../services/master";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import Swal from "sweetalert2";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
-import { DEBOUNCE, MAX_QTY } from "../../constants/app";
+import { DEBOUNCE, MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
+import { coerceFiniteNumber } from "../../utils/number";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -445,7 +445,7 @@ const validateForm = () => {
   if (!form.value.id_supplier) return "Supplier wajib dipilih.";
   if (!form.value.id_category) return "Kategori wajib dipilih.";
   if (!form.value.unit?.trim()) return "Satuan wajib diisi.";
-  const minimumStock = Number(form.value.minimum_stock);
+  const minimumStock = coerceFiniteNumber(form.value.minimum_stock, Number.NaN);
   if (!Number.isFinite(minimumStock) || minimumStock < 0) return "Minimum stock harus berupa angka non-negatif.";
   if (minimumStock > MAX_QTY) return `Minimum stock tidak boleh lebih dari ${MAX_QTY}.`;
   return "";
@@ -517,7 +517,7 @@ const saveProduct = async () => {
     await Promise.all([loadStatistic(), loadProducts()]);
   } catch (err) {
     setError(err);
-    Swal.fire("Gagal!", err.response?.data?.message || "Terjadi kesalahan", "error");
+    Swal.fire("Gagal!", getActionErrorMessage(err, "Terjadi kesalahan"), "error");
   } finally {
     saving.value = false;
   }
@@ -539,7 +539,7 @@ const deleteProduct = async (item) => {
     await Promise.all([loadStatistic(), loadProducts()]);
   } catch (err) {
     setError(err);
-    Swal.fire("Gagal!", err.response?.data?.message || "Gagal menghapus produk.", "error");
+    Swal.fire("Gagal!", getActionErrorMessage(err, "Gagal menghapus produk."), "error");
   }
 };
 

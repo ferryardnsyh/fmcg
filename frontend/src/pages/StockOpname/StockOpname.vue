@@ -90,9 +90,7 @@
             <div class="d-flex align-items-center gap-2">
               <label class="text-muted small fw-semibold text-nowrap mb-0">Tampil</label>
               <select class="form-select form-select-sm" style="width:auto;min-width:100px" v-model.number="itemsPerPage" @change="resetPage()">
-                <option :value="10">10 / Halaman</option>
-                <option :value="20">20 / Halaman</option>
-                <option :value="50">50 / Halaman</option>
+                <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }} / Halaman</option>
               </select>
             </div>
             <button class="btn btn-outline-secondary btn-modern d-flex align-items-center" @click="refreshData">
@@ -284,6 +282,7 @@ import { ref, reactive, computed, watch, onMounted } from "vue";
 import * as bootstrap from "bootstrap";
 import Swal from "sweetalert2";
 import opnameService from "../../services/opname";
+import { getActionErrorMessage } from "../../services/apiNotifier";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import {
@@ -300,7 +299,7 @@ import {
   opnameSystemStock,
   runWithConcurrency,
 } from "../../composables/useOpnameForm";
-import { MAX_QTY } from "../../constants/app";
+import { MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
 import { formatDate, todayIso } from "../../utils/date";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
@@ -429,7 +428,7 @@ const createSession = async () => {
     await loadSessionDetails(sessionId);
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || err.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, err.message || "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
   } finally {
     creating.value = false;
@@ -464,7 +463,7 @@ const saveDetailResults = async (item) => {
     await loadSessionDetails(sessionId);
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || err.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, err.message || "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
   } finally {
     savingDetails.value = false;
@@ -489,7 +488,7 @@ const completeSession = async (item) => {
     await loadAll();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Terjadi kesalahan";
+    const msg = getActionErrorMessage(err, "Terjadi kesalahan");
     Swal.fire("Gagal!", msg, "error");
   }
 };
@@ -510,7 +509,7 @@ const deleteSession = async (item) => {
     await loadAll();
   } catch (err) {
     loadError.value = err;
-    const msg = err.response?.data?.message || "Gagal menghapus sesi.";
+    const msg = getActionErrorMessage(err, "Gagal menghapus sesi.");
     Swal.fire("Gagal!", msg, "error");
   }
 };
