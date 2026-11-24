@@ -8,7 +8,7 @@ export function createOutboundDetailRow(source = {}) {
     rowKey: `outbound-detail-${++rowSequence}`,
     id_product: source.id_product ?? "",
     id_batch: source.id_batch ?? "",
-    quantity: source.quantity ?? 1,
+    quantity: toFiniteNumber(source.quantity, 1),
     availableBatches: source.availableBatches ?? [],
     maxQuantity: source.maxQuantity ?? 0,
   };

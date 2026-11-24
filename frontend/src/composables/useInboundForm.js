@@ -1,6 +1,6 @@
 import { MAX_QTY } from "../constants/app";
 import { todayIso, isValidIsoDate } from "../utils/date";
-import { isIntegerInRange } from "../utils/number";
+import { isIntegerInRange, toFiniteNumber } from "../utils/number";
 
 export { isValidIsoDate };
 
@@ -12,7 +12,7 @@ export function createInboundDetailRow(source = {}) {
     id_inbound_detail: source.id_inbound_detail ?? null,
     id_product: source.id_product ?? "",
     batch_number: source.batch_number ?? "",
-    quantity: source.quantity ?? 1,
+    quantity: toFiniteNumber(source.quantity, 1),
     expiry_date: source.expiry_date ?? "",
     id_rack: source.id_rack ?? "",
   };
