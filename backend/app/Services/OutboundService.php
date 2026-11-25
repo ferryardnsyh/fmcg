@@ -15,7 +15,6 @@ class OutboundService
     use ValidatesServiceActors;
     use NormalizesOutboundDetails;
 
-    private const LEGACY_MAX_ID = 35;
     private const MAX_QUANTITY = 2147483647;
 
     protected $db;
@@ -64,16 +63,6 @@ class OutboundService
         return ValueRules::isValidIsoDate($value);
     }
 
-    private function isLegacy(int $id): bool
-    {
-        return $id <= self::LEGACY_MAX_ID;
-    }
-
-    private function legacyMessage(): string
-    {
-        return 'Transaksi outbound lama perlu ditinjau terlebih dahulu';
-    }
-
     private function getLockedHeader(int $id): ?array
     {
         $header = $this->db
@@ -88,10 +77,6 @@ class OutboundService
         $header = $this->getLockedHeader($idOutbound);
         if (!$header) {
             return $this->fail('Outbound tidak ditemukan', 404);
-        }
-
-        if ($this->isLegacy($idOutbound)) {
-            return $this->fail($this->legacyMessage(), 409);
         }
 
         if (!$this->canManage($actor, $header)) {

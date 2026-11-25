@@ -394,24 +394,22 @@ final class OutboundStage2Test extends CIUnitTestCase
         $this->assertSame('Ditinjau admin', $this->header($id)['notes']);
     }
 
-    public function test12LegacyTransactionsRemainImmutable(): void
+    public function test12DraftTransactionsWithLegacyIdsRemainEditable(): void
     {
         $this->createLegacyFixture();
 
         foreach ([10, 11, 28] as $id) {
-            $before = $this->header($id);
             $detailsBefore = $this->db->table('outbound_details')
                 ->where('id_outbound', $id)
                 ->countAllResults();
 
             $update = $this->service->update((string)$id, ['notes' => 'Uji'], $this->admin());
-            $delete = $this->service->delete((string)$id, $this->admin());
-            $complete = $this->service->complete((string)$id, $this->admin());
+            $header = $this->header($id);
 
-            $this->assertSame(409, $update['code']);
-            $this->assertSame(409, $delete['code']);
-            $this->assertSame(409, $complete['code']);
-            $this->assertSame($before, $this->header($id));
+            $this->assertTrue($update['status']);
+            $this->assertSame(200, $update['code']);
+            $this->assertSame('Uji', $header['notes']);
+            $this->assertSame('DRAFT', $header['status']);
             $this->assertSame($detailsBefore, $this->db->table('outbound_details')
                 ->where('id_outbound', $id)
                 ->countAllResults());
