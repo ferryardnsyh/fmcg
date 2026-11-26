@@ -143,10 +143,52 @@ class ProductService
 
     public function createProduct(array $data): array
     {
-        $data['name'] = ValueRules::cleanText($data['name'] ?? '');
-        $data['sku_code'] = ValueRules::cleanText($data['sku_code'] ?? '');
+        $name = ValueRules::cleanText($data['name'] ?? '');
+        $sku = ValueRules::cleanText($data['sku_code'] ?? '');
+        $brandName = MasterInput::cleanOptional($data['brand_name'] ?? null);
+        $unit = ValueRules::cleanText($data['unit'] ?? '');
+        $status = strtoupper(trim((string) ($data['status'] ?? WmsPolicy::STATUS_ACTIVE)));
+        $categoryId = ValueRules::positiveId($data['id_category'] ?? null);
+        $supplierId = ValueRules::positiveId($data['id_supplier'] ?? null);
 
-        $existingSku = $this->db->table('products')->where('sku_code', $data['sku_code'])->countAllResults();
+        if ($name === '' || mb_strlen($name) > 200) {
+            return ['status' => false, 'message' => 'Nama produk wajib diisi dan maksimal 200 karakter'];
+        }
+
+        if ($sku === '' || ValueRules::normalizeCode($sku, 50) === null) {
+            return ['status' => false, 'message' => 'SKU code wajib diisi dan hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 50 karakter)'];
+        }
+
+        if ($brandName === false || ($brandName !== null && mb_strlen($brandName) > 200)) {
+            return ['status' => false, 'message' => 'Brand maksimal 200 karakter'];
+        }
+
+        if ($unit === '' || mb_strlen($unit) > 50) {
+            return ['status' => false, 'message' => 'Satuan wajib diisi dan maksimal 50 karakter'];
+        }
+
+        if (!in_array($status, [WmsPolicy::STATUS_ACTIVE, 'NONAKTIF'], true)) {
+            return ['status' => false, 'message' => 'Status produk tidak valid'];
+        }
+
+        if ($categoryId === null || $supplierId === null) {
+            return ['status' => false, 'message' => 'Kategori dan supplier wajib dipilih'];
+        }
+
+        $categoryExists = $this->db->table('categories')
+            ->where('id_category', $categoryId)
+            ->where('status', WmsPolicy::STATUS_ACTIVE)
+            ->countAllResults();
+        $supplierExists = $this->db->table('suppliers')
+            ->where('id_supplier', $supplierId)
+            ->where('status', WmsPolicy::STATUS_ACTIVE)
+            ->countAllResults();
+
+        if ($categoryExists === 0 || $supplierExists === 0) {
+            return ['status' => false, 'message' => 'Kategori atau supplier tidak ditemukan / tidak aktif'];
+        }
+
+        $existingSku = $this->db->table('products')->where('sku_code', $sku)->countAllResults();
         if ($existingSku > 0) {
             return [
                 'status' => false,
@@ -163,15 +205,15 @@ class ProductService
         }
 
         $productData = [
-            'sku_code'       => $data['sku_code'],
-            'name'           => $data['name'],
-            'category'       => $this->categoryName($data['id_category'] ?? null),
-            'id_supplier'    => $data['id_supplier'] ?? null,
-            'id_category'    => $data['id_category'] ?? null,
-            'brand_name'     => $data['brand_name'] ?? null,
-            'unit'           => $data['unit'] ?? null,
+            'sku_code'       => $sku,
+            'name'           => $name,
+            'category'       => $this->categoryName($categoryId),
+            'id_supplier'    => $supplierId,
+            'id_category'    => $categoryId,
+            'brand_name'     => $brandName,
+            'unit'           => $unit,
             'minimum_stock'  => $minimumStock,
-            'status'         => $data['status'] ?? WmsPolicy::STATUS_ACTIVE,
+            'status'         => $status,
             'created_at'     => date('Y-m-d H:i:s'),
         ];
 
@@ -193,22 +235,28 @@ class ProductService
 
     public function updateProduct(string $id, array $data): array
     {
-        if (isset($data['name'])) {
-            $data['name'] = ValueRules::cleanText($data['name']);
-        }
-        if (isset($data['sku_code'])) {
-            $data['sku_code'] = ValueRules::cleanText($data['sku_code']);
-        }
-        if (isset($data['brand_name'])) {
-            $data['brand_name'] = ValueRules::cleanText($data['brand_name']);
-        }
-        if (isset($data['unit'])) {
-            $data['unit'] = ValueRules::cleanText($data['unit']);
+        $name = null;
+        $sku = null;
+        $brandName = null;
+        $unit = null;
+        $status = null;
+        $categoryId = null;
+        $supplierId = null;
+
+        if (array_key_exists('name', $data)) {
+            $name = ValueRules::cleanText($data['name']);
+            if ($name === '' || mb_strlen($name) > 200) {
+                return ['status' => false, 'message' => 'Nama produk wajib diisi dan maksimal 200 karakter'];
+            }
         }
 
-        if (!empty($data['sku_code'])) {
+        if (array_key_exists('sku_code', $data)) {
+            $sku = ValueRules::cleanText($data['sku_code']);
+            if ($sku === '' || ValueRules::normalizeCode($sku, 50) === null) {
+                return ['status' => false, 'message' => 'SKU code hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 50 karakter)'];
+            }
             $existingSku = $this->db->table('products')
-                ->where('sku_code', $data['sku_code'])
+                ->where('sku_code', $sku)
                 ->where('id_product !=', $id)
                 ->countAllResults();
             if ($existingSku > 0) {
@@ -216,6 +264,49 @@ class ProductService
                     'status' => false,
                     'message' => 'SKU code sudah digunakan'
                 ];
+            }
+        }
+
+        if (array_key_exists('brand_name', $data)) {
+            $brandName = MasterInput::cleanOptional($data['brand_name']);
+            if ($brandName === false || ($brandName !== null && mb_strlen($brandName) > 200)) {
+                return ['status' => false, 'message' => 'Brand maksimal 200 karakter'];
+            }
+        }
+
+        if (array_key_exists('unit', $data)) {
+            $unit = ValueRules::cleanText($data['unit']);
+            if ($unit === '' || mb_strlen($unit) > 50) {
+                return ['status' => false, 'message' => 'Satuan wajib diisi dan maksimal 50 karakter'];
+            }
+        }
+
+        if (array_key_exists('status', $data)) {
+            $status = strtoupper(trim((string) $data['status']));
+            if (!in_array($status, [WmsPolicy::STATUS_ACTIVE, 'NONAKTIF'], true)) {
+                return ['status' => false, 'message' => 'Status produk tidak valid'];
+            }
+        }
+
+        if (array_key_exists('id_category', $data)) {
+            $categoryId = ValueRules::positiveId($data['id_category']);
+            $categoryExists = $categoryId === null ? 0 : $this->db->table('categories')
+                ->where('id_category', $categoryId)
+                ->where('status', WmsPolicy::STATUS_ACTIVE)
+                ->countAllResults();
+            if ($categoryExists === 0) {
+                return ['status' => false, 'message' => 'Kategori tidak ditemukan / tidak aktif'];
+            }
+        }
+
+        if (array_key_exists('id_supplier', $data)) {
+            $supplierId = ValueRules::positiveId($data['id_supplier']);
+            $supplierExists = $supplierId === null ? 0 : $this->db->table('suppliers')
+                ->where('id_supplier', $supplierId)
+                ->where('status', WmsPolicy::STATUS_ACTIVE)
+                ->countAllResults();
+            if ($supplierExists === 0) {
+                return ['status' => false, 'message' => 'Supplier tidak ditemukan / tidak aktif'];
             }
         }
 
@@ -231,19 +322,19 @@ class ProductService
         }
 
         $productData = [
-            'name'           => $data['name'] ?? null,
-            'sku_code'       => $data['sku_code'] ?? null,
-            'id_supplier'    => $data['id_supplier'] ?? null,
-            'id_category'    => $data['id_category'] ?? null,
-            'brand_name'     => $data['brand_name'] ?? null,
-            'unit'           => $data['unit'] ?? null,
+            'name'           => $name,
+            'sku_code'       => $sku,
+            'id_supplier'    => $supplierId,
+            'id_category'    => $categoryId,
+            'brand_name'     => $brandName,
+            'unit'           => $unit,
             'minimum_stock'  => $minimumStock,
-            'status'         => $data['status'] ?? null,
+            'status'         => $status,
             'updated_at'     => date('Y-m-d H:i:s'),
         ];
 
-        if (array_key_exists('id_category', $data)) {
-            $productData['category'] = $this->categoryName($data['id_category']);
+        if ($categoryId !== null) {
+            $productData['category'] = $this->categoryName($categoryId);
         }
 
         $productData = array_filter($productData, fn($v) => $v !== null);

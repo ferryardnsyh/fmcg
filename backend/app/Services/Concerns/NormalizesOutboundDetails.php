@@ -219,7 +219,7 @@ trait NormalizesOutboundDetails
     private function finalizeCompleteStatus(int $idOutbound, string $now): ?array
     {
         $this->db
-            ->table('outbound_headers')
+            ->table('outbound')
             ->where('id_outbound', $idOutbound)
             ->where('status', 'DRAFT')
             ->update([

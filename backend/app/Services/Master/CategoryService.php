@@ -2,6 +2,7 @@
 
 namespace App\Services\Master;
 
+use App\Support\ValueRules;
 use App\Validation\MasterInput;
 use Config\Database;
 use Throwable;
@@ -125,11 +126,16 @@ class CategoryService
     {
         $data = $data ?? [];
 
-        $name = trim($data['name'] ?? '');
-        $code = trim($data['category_code'] ?? '');
+        $name = MasterInput::sanitize(trim($data['name'] ?? '')) ?? '';
+        $rawCode = MasterInput::cleanOptional($data['category_code'] ?? null);
+        if ($rawCode === false) {
+            return $this->fail('Kode kategori tidak valid', 400);
+        }
 
-        $name = MasterInput::sanitize($name) ?? '';
-        $code = MasterInput::sanitize($code) ?? '';
+        $code = $rawCode === null ? '' : ValueRules::normalizeCode($rawCode, 10);
+        if ($code === null) {
+            return $this->fail('Kode kategori hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 10 karakter)', 400);
+        }
 
         if ($name === '') {
             return $this->fail('Nama kategori wajib diisi', 400);
@@ -137,10 +143,6 @@ class CategoryService
 
         if (mb_strlen($name) > 200) {
             return $this->fail('Nama kategori maksimal 200 karakter', 400);
-        }
-
-        if (mb_strlen($code) > 10) {
-            return $this->fail('Kode kategori maksimal 10 karakter', 400);
         }
 
         $status = array_key_exists('status', $data) ? $data['status'] : 'AKTIF';

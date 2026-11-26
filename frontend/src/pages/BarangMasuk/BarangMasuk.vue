@@ -107,13 +107,13 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
                 <th class="py-3">Nomor Penerimaan</th>
                 <th class="py-3">Supplier</th>
                 <th class="py-3">Tanggal</th>
-                <th class="py-3">Tanggal Expired</th>
+                <th class="py-3">Tanggal Kedaluwarsa</th>
                 <th class="py-3">Status</th>
                 <th class="py-3 text-center pe-3">Aksi</th>
               </tr>
@@ -217,6 +217,7 @@
                     class="form-control"
                     v-model="form.po_number"
                     maxlength="50"
+                    :pattern="DOCUMENT_PATTERN"
                     placeholder="Contoh: PO-001"
                     required
                   />
@@ -230,6 +231,7 @@
                     class="form-control"
                     v-model="form.delivery_note_number"
                     maxlength="50"
+                    :pattern="DOCUMENT_PATTERN"
                     placeholder="Contoh: SJ-001"
                     required
                   />
@@ -261,15 +263,15 @@
 
               <div class="table-responsive">
                 <table class="table table-bordered align-middle mb-0">
-                  <thead class="table-light text-uppercase fs-7">
+                  <thead class="table-light fs-7">
                     <tr>
-                      <th class="py-2">#</th>
+                      <th class="py-2">No</th>
                       <th class="py-2">Produk <span class="text-danger">*</span></th>
-                      <th class="py-2">Batch/Lot <span class="text-danger">*</span></th>
+                      <th class="py-2">Nomor Batch <span class="text-danger">*</span></th>
                       <th class="py-2" style="width:120px">Jumlah <span class="text-danger">*</span></th>
-                      <th class="py-2" style="width:150px">Tanggal Expired <span class="text-danger">*</span></th>
+                      <th class="py-2" style="width:150px">Tanggal Kedaluwarsa <span class="text-danger">*</span></th>
                       <th class="py-2">Rak <span class="text-danger">*</span></th>
-                      <th class="py-2 text-center" style="width:50px"></th>
+                      <th class="py-2 text-center" style="width:50px">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -282,13 +284,13 @@
                         </select>
                       </td>
                       <td>
-                        <input type="text" inputmode="text" autocomplete="off" maxlength="100" class="form-control form-control-sm" v-model="detail.batch_number" placeholder="Nomor batch/lot" required />
+                        <input type="text" inputmode="text" autocomplete="off" maxlength="100" :pattern="DOCUMENT_PATTERN" class="form-control form-control-sm" v-model="detail.batch_number" placeholder="Nomor batch/lot" required />
                       </td>
                       <td>
                         <input type="number" class="form-control form-control-sm" v-model.number="detail.quantity" min="1" :max="MAX_QTY" step="1" inputmode="numeric" required />
                       </td>
                       <td>
-                        <input type="date" class="form-control form-control-sm" v-model="detail.expiry_date" required />
+                        <input type="date" class="form-control form-control-sm" v-model="detail.expiry_date" :min="todayIso()" required />
                       </td>
                       <td>
                         <select class="form-select form-select-sm" v-model.number="detail.id_rack" required>
@@ -354,6 +356,7 @@ import {
 } from "../../composables/useInboundForm";
 import { MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
 import { formatDate, todayIso } from "../../utils/date";
+import { DOCUMENT_PATTERN } from "../../utils/validation";
 import { STATUS_BADGES, STATUS_LABELS } from "../../utils/status";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";

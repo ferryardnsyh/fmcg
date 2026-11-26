@@ -23,22 +23,22 @@ ALTER TABLE categories DROP COLUMN is_active;
 -- ============================================================
 -- 4.3: RACK_LOCATIONS — rename id -> id_rack
 -- ============================================================
-ALTER TABLE rack_locations RENAME COLUMN id TO id_rack;
+ALTER TABLE rack RENAME COLUMN id TO id_rack;
 
 -- Convert is_active (TINYINT 1/0) to status (VARCHAR 'AKTIF'/'NONAKTIF')
-ALTER TABLE rack_locations ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'AKTIF' AFTER is_active;
-UPDATE rack_locations SET status = 'AKTIF' WHERE is_active = 1;
-UPDATE rack_locations SET status = 'NONAKTIF' WHERE is_active = 0;
-ALTER TABLE rack_locations DROP COLUMN is_active;
+ALTER TABLE rack ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'AKTIF' AFTER is_active;
+UPDATE rack SET status = 'AKTIF' WHERE is_active = 1;
+UPDATE rack SET status = 'NONAKTIF' WHERE is_active = 0;
+ALTER TABLE rack DROP COLUMN is_active;
 
 -- Add name column (use rack_code as default)
-ALTER TABLE rack_locations ADD COLUMN name VARCHAR(100) NULL AFTER rack_code;
-UPDATE rack_locations SET name = rack_code WHERE name IS NULL;
+ALTER TABLE rack ADD COLUMN name VARCHAR(100) NULL AFTER rack_code;
+UPDATE rack SET name = rack_code WHERE name IS NULL;
 
 -- Remove old columns
-ALTER TABLE rack_locations DROP COLUMN warehouse_id;
-ALTER TABLE rack_locations DROP COLUMN shelf_code;
-ALTER TABLE rack_locations DROP COLUMN zone;
+ALTER TABLE rack DROP COLUMN warehouse_id;
+ALTER TABLE rack DROP COLUMN shelf_code;
+ALTER TABLE rack DROP COLUMN zone;
 
 -- ============================================================
 -- 4.4: SUPPLIERS — VARCHAR id -> INT id_supplier

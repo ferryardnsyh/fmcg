@@ -116,7 +116,7 @@ final class OutboundStage1Test extends CIUnitTestCase
 
     private function header(int $id): array
     {
-        $row = $this->db->table('outbound_headers')
+        $row = $this->db->table('outbound')
             ->where('id_outbound', $id)
             ->get()
             ->getRowArray();
@@ -287,7 +287,7 @@ final class OutboundStage1Test extends CIUnitTestCase
 
         $this->assertTrue($result['status']);
         $this->assertSame($before, $this->stock($this->batchId));
-        $this->assertSame(0, $this->db->table('outbound_headers')->where('id_outbound', $id)->countAllResults());
+        $this->assertSame(0, $this->db->table('outbound')->where('id_outbound', $id)->countAllResults());
         $this->assertSame(0, $this->db->table('outbound_details')->where('id_outbound', $id)->countAllResults());
     }
 
@@ -331,7 +331,7 @@ final class OutboundStage1Test extends CIUnitTestCase
 
     public function test15CompleteRejectsEmptyStoredDetails(): void
     {
-        $this->db->table('outbound_headers')->insert([
+        $this->db->table('outbound')->insert([
             'delivery_number' => 'TEST-EMPTY-' . bin2hex(random_bytes(3)),
             'delivery_date'   => date('Y-m-d'),
             'status'          => 'DRAFT',

@@ -33,7 +33,7 @@ class MasterDataService
 
     public function rackLocations(): array
     {
-        return $this->db->table('rack_locations')
+        return $this->db->table('rack')
             ->select('id_rack, name, rack_code')
             ->where('status', 'AKTIF')
             ->orderBy('rack_code', 'ASC')

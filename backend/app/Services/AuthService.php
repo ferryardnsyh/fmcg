@@ -23,6 +23,14 @@ class AuthService
             ];
         }
 
+        if (mb_strlen($username) > 100 || strlen($password) > 255) {
+            return [
+                'status' => false,
+                'code' => 400,
+                'message' => 'Username atau password terlalu panjang'
+            ];
+        }
+
         $user = $this->userModel
             ->where('username', $username)
             ->first();

@@ -92,7 +92,7 @@
         <!-- Table -->
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
                 <th class="py-3">Kode</th>
@@ -201,6 +201,7 @@
                     v-model="form.supplier_code"
                     placeholder="Contoh: SP006"
                     maxlength="50"
+                    :pattern="CODE_PATTERN"
                     required
                   />
                 </div>
@@ -222,12 +223,14 @@
                   <label class="form-label small fw-semibold">Telepon</label>
                   <input
                     type="tel"
-                    inputmode="tel"
+                    inputmode="numeric"
                     autocomplete="tel"
                     class="form-control"
                     v-model="form.phone"
-                    placeholder="Nomor telepon"
+                    @input="form.phone = digitsOnly(form.phone)"
+                    placeholder="Nomor telepon (angka saja)"
                     maxlength="50"
+                    :pattern="PHONE_PATTERN"
                   />
                 </div>
                 <div class="col-md-12">
@@ -288,6 +291,14 @@ import Swal from "sweetalert2";
 import supplierService from "../../services/supplier";
 import { getActionErrorMessage } from "../../services/apiNotifier";
 import { SUPPLIER_PAGE_SIZE } from "../../constants/app";
+import {
+  CODE_PATTERN,
+  PHONE_PATTERN,
+  digitsOnly,
+  isValidPhone,
+  validateCode,
+  validateText,
+} from "../../utils/validation";
 import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
@@ -402,6 +413,25 @@ const openEditModal = (item) => {
 };
 
 const saveSupplier = async () => {
+  const codeError = validateCode(form.value.supplier_code, "Kode supplier", 50);
+  if (codeError) {
+    Swal.fire("Validasi", codeError, "warning");
+    return;
+  }
+  const nameError = validateText(form.value.name, "Nama supplier", 200);
+  if (nameError) {
+    Swal.fire("Validasi", nameError, "warning");
+    return;
+  }
+  if (!isValidPhone(form.value.phone, 50)) {
+    Swal.fire("Validasi", "Nomor telepon hanya boleh angka dan maksimal 50 karakter.", "warning");
+    return;
+  }
+  const addressError = validateText(form.value.address, "Alamat", 65535, false);
+  if (addressError) {
+    Swal.fire("Validasi", addressError, "warning");
+    return;
+  }
   saving.value = true;
   try {
     const payload = {

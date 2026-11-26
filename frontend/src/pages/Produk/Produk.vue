@@ -123,15 +123,15 @@
         <!-- Table -->
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
-                <th class="py-3">SKU</th>
+                <th class="py-3">Kode Produk</th>
                 <th class="py-3">Nama Produk</th>
                 <th class="py-3">Satuan</th>
                 <th class="py-3">Supplier</th>
                 <th class="py-3">Kategori</th>
-                <th class="py-3">Stock Level</th>
+                <th class="py-3">Tingkat Stok</th>
                 <th class="py-3">Status</th>
                 <th class="py-3 text-center pe-3">Aksi</th>
               </tr>
@@ -225,11 +225,11 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold">Nama Produk</label>
-                  <input type="text" inputmode="text" autocomplete="off" maxlength="200" class="form-control" v-model="form.name" placeholder="Masukkan nama produk" />
+                  <input type="text" inputmode="text" autocomplete="off" maxlength="200" class="form-control" v-model="form.name" placeholder="Masukkan nama produk" required />
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-semibold">SKU Code</label>
-                  <input type="text" inputmode="text" autocomplete="off" maxlength="50" class="form-control" v-model="form.sku_code" placeholder="Masukkan SKU code" />
+                  <input type="text" inputmode="text" autocomplete="off" maxlength="50" class="form-control" v-model="form.sku_code" :pattern="CODE_PATTERN" placeholder="Masukkan SKU code" required />
                 </div>
               </div>
 
@@ -238,7 +238,7 @@
               <div class="row g-3">
                 <div class="col-md-4">
                   <label class="form-label small fw-semibold">Supplier</label>
-                  <select class="form-select" v-model.number="form.id_supplier">
+                  <select class="form-select" v-model.number="form.id_supplier" required>
                     <option disabled value="">Pilih Supplier</option>
                     <option v-for="s in masterData.suppliers" :key="s.id_supplier" :value="s.id_supplier">{{ s.name }}</option>
                   </select>
@@ -249,14 +249,14 @@
                 </div>
                 <div class="col-md-4">
                   <label class="form-label small fw-semibold">Kategori</label>
-                  <select class="form-select" v-model.number="form.id_category">
+                  <select class="form-select" v-model.number="form.id_category" required>
                     <option disabled value="">Pilih Kategori</option>
                     <option v-for="c in masterData.categories" :key="c.id_category" :value="c.id_category">{{ c.name }}</option>
                   </select>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label small fw-semibold">Satuan</label>
-                  <input type="text" inputmode="text" maxlength="50" class="form-control" v-model="form.unit" placeholder="Contoh: Karton" />
+                  <input type="text" inputmode="text" maxlength="50" class="form-control" v-model="form.unit" placeholder="Contoh: Karton" required />
                 </div>
               </div>
 
@@ -313,6 +313,7 @@ import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
 import { DEBOUNCE, MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
 import { coerceFiniteNumber } from "../../utils/number";
+import { CODE_PATTERN, validateCode, validateText } from "../../utils/validation";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -440,11 +441,16 @@ onMounted(() => {
 onBeforeUnmount(() => clearTimeout(searchDebounce));
 
 const validateForm = () => {
-  if (!form.value.name?.trim()) return "Nama produk wajib diisi.";
-  if (!form.value.sku_code?.trim()) return "SKU code wajib diisi.";
+  const nameError = validateText(form.value.name, "Nama produk", 200);
+  if (nameError) return nameError;
+  const skuError = validateCode(form.value.sku_code, "SKU code", 50);
+  if (skuError) return skuError;
+  const brandError = validateText(form.value.brand_name, "Brand", 200, false);
+  if (brandError) return brandError;
   if (!form.value.id_supplier) return "Supplier wajib dipilih.";
   if (!form.value.id_category) return "Kategori wajib dipilih.";
-  if (!form.value.unit?.trim()) return "Satuan wajib diisi.";
+  const unitError = validateText(form.value.unit, "Satuan", 50);
+  if (unitError) return unitError;
   const minimumStock = coerceFiniteNumber(form.value.minimum_stock, Number.NaN);
   if (!Number.isFinite(minimumStock) || minimumStock < 0) return "Minimum stock harus berupa angka non-negatif.";
   if (minimumStock > MAX_QTY) return `Minimum stock tidak boleh lebih dari ${MAX_QTY}.`;

@@ -1,6 +1,11 @@
 import { MAX_QTY } from "../constants/app";
-import { todayIso, isValidIsoDate } from "../utils/date";
+import { isValidIsoDate } from "../utils/date";
 import { isIntegerInRange, toFiniteNumber } from "../utils/number";
+import {
+  validateDateNotPast,
+  validateDocumentNumber,
+  validateText,
+} from "../utils/validation";
 
 export { isValidIsoDate };
 
@@ -22,13 +27,15 @@ export function validateInboundForm(form, details) {
   const poNumber = String(form?.po_number || "").trim();
   const deliveryNoteNumber = String(form?.delivery_note_number || "").trim();
 
-  if (!poNumber) return "Nomor PO harus diisi.";
-  if (poNumber.length > 50) return "Nomor PO maksimal 50 karakter.";
-  if (!deliveryNoteNumber) return "Nomor Surat Jalan harus diisi.";
-  if (deliveryNoteNumber.length > 50) return "Nomor Surat Jalan maksimal 50 karakter.";
+  const documentError = validateDocumentNumber(poNumber, "Nomor PO", 50);
+  if (documentError) return documentError;
+  const deliveryError = validateDocumentNumber(deliveryNoteNumber, "Nomor Surat Jalan", 50);
+  if (deliveryError) return deliveryError;
+  const notesError = validateText(form?.notes, "Catatan", 65535, false);
+  if (notesError) return notesError;
   if (!form?.id_supplier) return "Supplier harus dipilih.";
-  if (!isValidIsoDate(form?.reception_date)) return "Tanggal masuk harus diisi dengan benar.";
-  if (form.reception_date < todayIso()) return "Tanggal masuk tidak boleh sebelum hari ini.";
+  const receptionError = validateDateNotPast(form?.reception_date, "Tanggal masuk");
+  if (receptionError) return receptionError;
   if (!details?.length) return "Minimal harus ada satu detail barang.";
 
   const seenBatch = new Set();
@@ -40,8 +47,8 @@ export function validateInboundForm(form, details) {
     if (!detail.id_product) return `Baris ${row}: Produk harus dipilih.`;
 
     const batchNumber = String(detail.batch_number || "").trim();
-    if (!batchNumber) return `Baris ${row}: Batch/Lot harus diisi.`;
-    if (batchNumber.length > 100) return `Baris ${row}: Batch/Lot maksimal 100 karakter.`;
+    const batchError = validateDocumentNumber(batchNumber, `Baris ${row}: Batch/Lot`, 100);
+    if (batchError) return batchError;
 
     const batchKey = `${detail.id_product}|${batchNumber.toUpperCase()}`;
     if (seenBatch.has(batchKey)) return `Baris ${row}: Batch/Lot duplikat untuk produk yang sama.`;
@@ -50,9 +57,8 @@ export function validateInboundForm(form, details) {
     if (!isIntegerInRange(detail.quantity, 1, MAX_QTY)) {
       return `Baris ${row}: Jumlah harus bilangan bulat antara 1 dan ${MAX_QTY}.`;
     }
-    if (!isValidIsoDate(detail.expiry_date)) {
-      return `Baris ${row}: Tanggal expired wajib diisi dengan benar.`;
-    }
+    const expiryError = validateDateNotPast(detail.expiry_date, `Baris ${row}: Tanggal expired`);
+    if (expiryError) return expiryError;
     if (!detail.id_rack) return `Baris ${row}: Rak wajib dipilih.`;
   }
 

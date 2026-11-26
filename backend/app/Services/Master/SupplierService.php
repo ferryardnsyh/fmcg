@@ -3,6 +3,7 @@
 namespace App\Services\Master;
 
 use App\Models\SupplierModel;
+use App\Support\ValueRules;
 use App\Validation\MasterInput;
 use Config\Database;
 use Throwable;
@@ -43,15 +44,11 @@ class SupplierService
     {
         $data = is_array($data) ? $data : [];
 
-        $code = MasterInput::cleanRequired($data['supplier_code'] ?? null);
+        $code = ValueRules::normalizeCode($data['supplier_code'] ?? null, 50);
         $name = MasterInput::cleanRequired($data['name'] ?? null);
 
         if ($code === null || $name === null) {
-            return $this->fail('Field supplier_code dan name wajib diisi', 400);
-        }
-
-        if (mb_strlen($code) > 50) {
-            return $this->fail('Kode supplier maksimal 50 karakter', 400);
+            return $this->fail('Field supplier_code dan name wajib diisi dengan format yang benar', 400);
         }
 
         if (mb_strlen($name) > 200) {
@@ -63,15 +60,14 @@ class SupplierService
             return $this->fail($statusError, 400);
         }
 
-        $phone = MasterInput::cleanOptional($data['phone'] ?? null);
-        if ($phone === false) {
-            return $this->fail('Nomor telepon tidak valid', 400);
-        }
-        if ($phone !== null && mb_strlen($phone) > 50) {
-            return $this->fail('Nomor telepon maksimal 50 karakter', 400);
-        }
-        if ($phone !== null && !preg_match('/^[0-9+\-()\/.\s]+$/u', $phone)) {
-            return $this->fail('Format nomor telepon tidak valid', 400);
+        $rawPhone = $data['phone'] ?? null;
+        if ($rawPhone === null || trim((string) $rawPhone) === '') {
+            $phone = null;
+        } else {
+            $phone = ValueRules::normalizeDigits($rawPhone, 50);
+            if ($phone === null) {
+                return $this->fail('Nomor telepon hanya boleh angka dan maksimal 50 karakter', 400);
+            }
         }
 
         $address = MasterInput::cleanOptional($data['address'] ?? null);
@@ -126,15 +122,11 @@ class SupplierService
             return $this->fail('Data request tidak valid. Pastikan mengirimkan JSON.', 400);
         }
 
-        $code = MasterInput::cleanRequired($data['supplier_code'] ?? null);
+        $code = ValueRules::normalizeCode($data['supplier_code'] ?? null, 50);
         $name = MasterInput::cleanRequired($data['name'] ?? null);
 
         if ($code === null || $name === null) {
-            return $this->fail('Field supplier_code dan name wajib diisi', 400);
-        }
-
-        if (mb_strlen($code) > 50) {
-            return $this->fail('Kode supplier maksimal 50 karakter', 400);
+            return $this->fail('Field supplier_code dan name wajib diisi dengan format yang benar', 400);
         }
 
         if (mb_strlen($name) > 200) {
@@ -146,15 +138,14 @@ class SupplierService
             return $this->fail($statusError, 400);
         }
 
-        $phone = MasterInput::cleanOptional($data['phone'] ?? null);
-        if ($phone === false) {
-            return $this->fail('Nomor telepon tidak valid', 400);
-        }
-        if ($phone !== null && mb_strlen($phone) > 50) {
-            return $this->fail('Nomor telepon maksimal 50 karakter', 400);
-        }
-        if ($phone !== null && !preg_match('/^[0-9+\-()\/.\s]+$/u', $phone)) {
-            return $this->fail('Format nomor telepon tidak valid', 400);
+        $rawPhone = $data['phone'] ?? null;
+        if ($rawPhone === null || trim((string) $rawPhone) === '') {
+            $phone = null;
+        } else {
+            $phone = ValueRules::normalizeDigits($rawPhone, 50);
+            if ($phone === null) {
+                return $this->fail('Nomor telepon hanya boleh angka dan maksimal 50 karakter', 400);
+            }
         }
 
         $address = MasterInput::cleanOptional($data['address'] ?? null);
@@ -203,7 +194,7 @@ class SupplierService
 
         $db = Database::connect();
         $productCount = $db->table('products')->where('id_supplier', $id)->countAllResults();
-        $inboundCount = $db->table('inbound_headers')->where('id_supplier', $id)->countAllResults();
+        $inboundCount = $db->table('inbound')->where('id_supplier', $id)->countAllResults();
 
         if ($productCount > 0 || $inboundCount > 0) {
             $reasons = [];

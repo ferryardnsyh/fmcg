@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class InboundHeaderModel extends Model
 {
-    protected $table = 'inbound_headers';
+    protected $table = 'inbound';
 
     protected $primaryKey = 'id_inbound';
 

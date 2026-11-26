@@ -2,6 +2,7 @@
 
 namespace App\Services\Concerns;
 
+use App\Support\ValueRules;
 use App\Support\WmsPolicy;
 use App\Validation\MasterInput;
 use RuntimeException;
@@ -11,6 +12,9 @@ trait ManagesStockAdjustments
     private function prepareAdjustmentInput(array $data): array
     {
         $data['reason'] = isset($data['reason']) ? trim(strip_tags((string)$data['reason'])) : null;
+        if ($data['reason'] !== null && mb_strlen($data['reason']) > 200) {
+            return [null, $this->makeFailureResult('Alasan adjustment maksimal 200 karakter')];
+        }
 
         if (empty($data['product_id']) && empty($data['batch_id'])) {
             return [null, $this->makeFailureResult('Product ID wajib diisi')];
@@ -25,10 +29,9 @@ trait ManagesStockAdjustments
                 ? WmsPolicy::TYPE_INCREASE
                 : WmsPolicy::TYPE_DECREASE;
 
-            $qty = $data['quantity'] ?? null;
-            $intQty = filter_var($qty, FILTER_VALIDATE_INT);
-            if ($intQty === false || $intQty <= 0) {
-                return [null, $this->makeFailureResult('Quantity adjustment wajib diisi berupa bilangan bulat positif')];
+            $intQty = ValueRules::positiveInt($data['quantity'] ?? null, 2147483647);
+            if ($intQty === null) {
+                return [null, $this->makeFailureResult('Quantity adjustment wajib diisi berupa bilangan bulat antara 1 dan 2147483647')];
             }
 
             if (empty($data['reason']) || trim((string)$data['reason']) === '') {
@@ -36,7 +39,13 @@ trait ManagesStockAdjustments
             }
         }
 
-        $batchId = $data['batch_id'] ?? null;
+        $batchId = ValueRules::positiveId($data['batch_id'] ?? null);
+        if (($data['batch_id'] ?? null) !== null && $batchId === null) {
+            return [null, $this->makeFailureResult('Batch tidak valid')];
+        }
+        if (($data['product_id'] ?? null) !== null && ValueRules::positiveId($data['product_id']) === null) {
+            return [null, $this->makeFailureResult('Product ID tidak valid')];
+        }
 
         if (empty($batchId)) {
             $batch = $this->db->table('product_batches')

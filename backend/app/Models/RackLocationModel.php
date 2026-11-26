@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class RackLocationModel extends Model
 {
-    protected $table = 'rack_locations';
+    protected $table = 'rack';
 
     protected $primaryKey = 'id_rack';
 

@@ -111,7 +111,7 @@
         <!-- Table -->
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
                 <th class="py-3">Nomor Pengiriman</th>
@@ -265,10 +265,10 @@
 
               <div class="table-responsive">
                 <table class="table table-bordered align-middle mb-0">
-                  <thead class="table-light text-uppercase fs-7">
+                  <thead class="table-light fs-7">
                     <tr>
                       <th class="py-2" style="width: 30%">Produk</th>
-                      <th class="py-2" style="width: 30%">Batch No</th>
+                      <th class="py-2" style="width: 30%">Nomor Batch</th>
                       <th class="py-2" style="width: 20%">Jumlah</th>
                       <th class="py-2 text-center" style="width: 50px">Aksi</th>
                     </tr>
@@ -611,7 +611,7 @@ const openEditModal = async (item) => {
 };
 
 const saveOutbound = async () => {
-  const validationMessage = validateOutboundDetails(details.value);
+  const validationMessage = validateOutboundDetails(details.value, form.value);
   if (validationMessage) {
     Swal.fire("Validasi", validationMessage, "warning");
     return;

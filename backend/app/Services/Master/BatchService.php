@@ -17,9 +17,9 @@ class BatchService
     public function getBatches(): array
     {
         $data = $this->batchModel
-            ->select('product_batches.*, products.name AS product_name, rack_locations.name AS rack_name, rack_locations.rack_code, DATEDIFF(product_batches.expiry_date, NOW()) AS days_remaining')
+            ->select('product_batches.*, products.name AS product_name, rack.name AS rack_name, rack.rack_code, DATEDIFF(product_batches.expiry_date, NOW()) AS days_remaining')
             ->join('products', 'products.id_product = product_batches.id_product', 'left')
-            ->join('rack_locations', 'rack_locations.id_rack = product_batches.id_rack', 'left')
+            ->join('rack', 'rack.id_rack = product_batches.id_rack', 'left')
             ->orderBy('product_batches.created_at', 'DESC')
             ->findAll();
 

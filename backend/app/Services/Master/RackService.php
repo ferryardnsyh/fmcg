@@ -2,6 +2,7 @@
 
 namespace App\Services\Master;
 
+use App\Support\ValueRules;
 use App\Validation\MasterInput;
 use Config\Database;
 use Throwable;
@@ -30,7 +31,7 @@ class RackService
         $orderParam = $params['order'] ?? 'ASC';
         $order = is_string($orderParam) && strtoupper($orderParam) === 'DESC' ? 'DESC' : 'ASC';
 
-        $builder = $this->db->table('rack_locations r')
+        $builder = $this->db->table('rack r')
             ->select('r.id_rack, r.rack_code, r.name, r.status');
 
         if ($search !== '') {
@@ -51,8 +52,8 @@ class RackService
             ->get()
             ->getResultArray();
 
-        $statsTotal = (int) $this->db->table('rack_locations')->countAllResults();
-        $statsAktif = (int) $this->db->table('rack_locations')->where('status', 'AKTIF')->countAllResults();
+        $statsTotal = (int) $this->db->table('rack')->countAllResults();
+        $statsAktif = (int) $this->db->table('rack')->where('status', 'AKTIF')->countAllResults();
 
         return [
             'status' => true,
@@ -73,7 +74,7 @@ class RackService
 
     public function getRack($id): array
     {
-        $data = $this->db->table('rack_locations')
+        $data = $this->db->table('rack')
             ->select('id_rack, rack_code, name, status')
             ->where('id_rack', $id)
             ->get()
@@ -90,19 +91,15 @@ class RackService
     {
         $data = is_array($data) ? $data : [];
 
-        $code = MasterInput::cleanRequired($data['rack_code'] ?? null);
+        $code = ValueRules::normalizeCode($data['rack_code'] ?? null, 50);
         $name = MasterInput::cleanOptional($data['name'] ?? null);
 
         if ($code === null) {
-            return $this->fail('Kode rak wajib diisi', 400);
+            return $this->fail('Kode rak wajib diisi dan hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 50 karakter)', 400);
         }
 
         if ($name === false) {
             return $this->fail('Nama rak tidak valid', 400);
-        }
-
-        if (mb_strlen($code) > 50) {
-            return $this->fail('Kode rak maksimal 50 karakter', 400);
         }
 
         if ($name !== null && mb_strlen($name) > 100) {
@@ -114,14 +111,14 @@ class RackService
             return $this->fail($statusError, 400);
         }
 
-        $codeExists = $this->db->table('rack_locations')
+        $codeExists = $this->db->table('rack')
             ->where('rack_code', $code)
             ->countAllResults();
         if ($codeExists > 0) {
             return $this->fail('Kode rak sudah digunakan', 409);
         }
 
-        $this->db->table('rack_locations')->insert([
+        $this->db->table('rack')->insert([
             'rack_code' => $code,
             'name' => $name,
             'status' => $status,
@@ -141,7 +138,7 @@ class RackService
 
     public function updateRack($id, mixed $data): array
     {
-        $existing = $this->db->table('rack_locations')->where('id_rack', $id)->get()->getRowArray();
+        $existing = $this->db->table('rack')->where('id_rack', $id)->get()->getRowArray();
         if (!$existing) {
             return $this->fail('Rak tidak ditemukan', 404);
         }
@@ -150,21 +147,17 @@ class RackService
             return $this->fail('Data request tidak valid. Pastikan mengirimkan JSON.', 400);
         }
 
-        $code = MasterInput::cleanRequired($data['rack_code'] ?? $existing['rack_code']);
+        $code = ValueRules::normalizeCode($data['rack_code'] ?? $existing['rack_code'], 50);
         $name = array_key_exists('name', $data)
             ? MasterInput::cleanOptional($data['name'])
             : $existing['name'];
 
         if ($code === null) {
-            return $this->fail('Kode rak wajib diisi', 400);
+            return $this->fail('Kode rak hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 50 karakter)', 400);
         }
 
         if ($name === false) {
             return $this->fail('Nama rak tidak valid', 400);
-        }
-
-        if (mb_strlen($code) > 50) {
-            return $this->fail('Kode rak maksimal 50 karakter', 400);
         }
 
         if ($name !== null && mb_strlen($name) > 100) {
@@ -176,7 +169,7 @@ class RackService
             return $this->fail($statusError, 400);
         }
 
-        $duplicate = $this->db->table('rack_locations')
+        $duplicate = $this->db->table('rack')
             ->where('rack_code', $code)
             ->where('id_rack !=', $id)
             ->countAllResults();
@@ -184,7 +177,7 @@ class RackService
             return $this->fail('Kode rak sudah digunakan', 409);
         }
 
-        $this->db->table('rack_locations')->where('id_rack', $id)->update([
+        $this->db->table('rack')->where('id_rack', $id)->update([
             'rack_code' => $code,
             'name' => $name,
             'status' => $status,
@@ -198,7 +191,7 @@ class RackService
 
     public function deleteRack($id): array
     {
-        $existing = $this->db->table('rack_locations')->where('id_rack', $id)->get()->getRowArray();
+        $existing = $this->db->table('rack')->where('id_rack', $id)->get()->getRowArray();
         if (!$existing) {
             return $this->fail('Rak tidak ditemukan', 404);
         }
@@ -225,7 +218,7 @@ class RackService
             );
         }
 
-        $this->db->table('rack_locations')->where('id_rack', $id)->delete();
+        $this->db->table('rack')->where('id_rack', $id)->delete();
 
         return [
             'status' => true,

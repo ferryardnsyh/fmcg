@@ -91,14 +91,14 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
                 <th class="py-3">Nama</th>
-                <th class="py-3">Username</th>
-                <th class="py-3">Role</th>
+                <th class="py-3">Nama Pengguna</th>
+                <th class="py-3">Peran</th>
                 <th class="py-3">Status</th>
-                <th class="py-3">Dibuat</th>
+                <th class="py-3">Tanggal Dibuat</th>
                 <th class="py-3 text-center pe-3">Aksi</th>
               </tr>
             </thead>
@@ -229,6 +229,7 @@
                     inputmode="text"
                     autocomplete="username"
                     maxlength="100"
+                    :pattern="CODE_PATTERN"
                     class="form-control"
                     v-model="form.username"
                     placeholder="Masukkan username untuk login"
@@ -362,6 +363,7 @@ import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
 import { formatDate } from "../../utils/date";
+import { CODE_PATTERN, validateCode, validateText } from "../../utils/validation";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 
@@ -479,6 +481,23 @@ const openPasswordModal = (item) => {
 };
 
 const saveUser = async () => {
+  const nameError = validateText(form.value.name, "Nama lengkap", 200);
+  if (nameError) {
+    Swal.fire("Validasi", nameError, "warning");
+    return;
+  }
+  const usernameError = validateCode(form.value.username, "Username", 100);
+  if (usernameError) {
+    Swal.fire("Validasi", usernameError, "warning");
+    return;
+  }
+  if (!isEditMode.value) {
+    const password = String(form.value.password ?? "");
+    if (password.length < 6 || password.length > 255) {
+      Swal.fire("Validasi", "Password harus 6 sampai 255 karakter.", "warning");
+      return;
+    }
+  }
   saving.value = true;
   try {
     if (isEditMode.value) {
@@ -504,6 +523,16 @@ const saveUser = async () => {
 };
 
 const changePassword = async () => {
+  const currentPassword = String(passwordForm.value.current_password ?? "");
+  const newPassword = String(passwordForm.value.new_password ?? "");
+  if (!currentPassword || currentPassword.length > 255) {
+    Swal.fire("Validasi", "Password lama wajib diisi dan maksimal 255 karakter.", "warning");
+    return;
+  }
+  if (newPassword.length < 6 || newPassword.length > 255) {
+    Swal.fire("Validasi", "Password baru harus 6 sampai 255 karakter.", "warning");
+    return;
+  }
   changingPassword.value = true;
   try {
     await userService.changePassword(passwordForm.value.id, {

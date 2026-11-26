@@ -98,6 +98,43 @@ class ValueRules
         return trim(strip_tags((string) $value));
     }
 
+    public static function normalizeCode(mixed $value, int $maxLength): ?string
+    {
+        $value = self::cleanScalarText($value);
+        if ($value === null || $value === '' || mb_strlen($value) > $maxLength) {
+            return null;
+        }
+
+        return preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*$/u', $value) === 1 ? $value : null;
+    }
+
+    public static function normalizeDocumentNumber(mixed $value, int $maxLength): ?string
+    {
+        $value = self::cleanScalarText($value);
+        if ($value === null || $value === '' || mb_strlen($value) > $maxLength) {
+            return null;
+        }
+
+        return preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/_-]*$/u', $value) === 1 ? $value : null;
+    }
+
+    public static function normalizeDigits(mixed $value, int $maxLength): ?string
+    {
+        $value = self::cleanScalarText($value);
+        if ($value === null || $value === '' || mb_strlen($value) > $maxLength) {
+            return null;
+        }
+
+        return ctype_digit($value) ? $value : null;
+    }
+
+    public static function notPastIsoDate(mixed $value): ?string
+    {
+        $date = self::parseIsoDate($value, true);
+
+        return ($date !== null && $date >= date('Y-m-d')) ? $date : null;
+    }
+
     public static function stringifyScalar(mixed $value): ?string
     {
         if ($value === null || (!is_string($value) && !is_numeric($value))) {

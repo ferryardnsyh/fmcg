@@ -82,11 +82,27 @@ class UserService
             ];
         }
 
-        if (strlen($data['password']) < 6) {
+        if (mb_strlen($data['name']) > 200) {
             return [
                 'status'  => false,
                 'code'    => 400,
-                'message' => 'Password minimal 6 karakter'
+                'message' => 'Nama maksimal 200 karakter'
+            ];
+        }
+
+        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*$/', $data['username']) !== 1 || mb_strlen($data['username']) > 100) {
+            return [
+                'status'  => false,
+                'code'    => 400,
+                'message' => 'Username hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 100 karakter)'
+            ];
+        }
+
+        if (strlen($data['password']) < 6 || strlen($data['password']) > 255) {
+            return [
+                'status'  => false,
+                'code'    => 400,
+                'message' => 'Password harus 6 sampai 255 karakter'
             ];
         }
 
@@ -116,12 +132,24 @@ class UserService
             ];
         }
 
+        $status = strtoupper(trim((string) ($data['status'] ?? 'AKTIF')));
+        if (in_array($status, ['ACTIVE', '1'], true)) {
+            $status = 'AKTIF';
+        }
+        if (!in_array($status, ['AKTIF', 'NONAKTIF'], true)) {
+            return [
+                'status'  => false,
+                'code'    => 400,
+                'message' => 'Status user tidak valid'
+            ];
+        }
+
         $userData = [
             'name'     => $data['name'],
             'username' => $data['username'],
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
             'role'     => $role,
-            'status'   => in_array(strtoupper($data['status'] ?? 'AKTIF'), ['ACTIVE', 'AKTIF', '1']) ? 'AKTIF' : strtoupper($data['status'] ?? 'AKTIF')
+            'status'   => $status
         ];
 
         $id = $this->userModel->insert($userData);
@@ -167,6 +195,28 @@ class UserService
                     'status'  => false,
                     'code'    => 409,
                     'message' => 'Username sudah digunakan'
+                ];
+            }
+        }
+
+        if (!empty($data['name'])) {
+            $cleanName = trim(strip_tags((string) $data['name']));
+            if ($cleanName === '' || mb_strlen($cleanName) > 200) {
+                return [
+                    'status'  => false,
+                    'code'    => 400,
+                    'message' => 'Nama wajib diisi dan maksimal 200 karakter'
+                ];
+            }
+        }
+
+        if (!empty($data['username'])) {
+            $cleanUsername = trim(strip_tags((string) $data['username']));
+            if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]*$/', $cleanUsername) !== 1 || mb_strlen($cleanUsername) > 100) {
+                return [
+                    'status'  => false,
+                    'code'    => 400,
+                    'message' => 'Username hanya boleh huruf, angka, titik, garis bawah, atau tanda hubung (maksimal 100 karakter)'
                 ];
             }
         }
@@ -235,14 +285,27 @@ class UserService
         if (!empty($data['name']))     $updateData['name'] = trim(strip_tags((string)$data['name']));
         if (!empty($data['username'])) $updateData['username'] = trim(strip_tags((string)$data['username']));
         if ($role !== null)            $updateData['role'] = $role;
-        if (!empty($data['status']))   $updateData['status'] = strtoupper($data['status']);
-
-        if (!empty($data['password'])) {
-            if (strlen($data['password']) < 6) {
+        if (!empty($data['status'])) {
+            $newStatus = strtoupper(trim((string) $data['status']));
+            if (in_array($newStatus, ['ACTIVE', '1'], true)) {
+                $newStatus = 'AKTIF';
+            }
+            if (!in_array($newStatus, ['AKTIF', 'NONAKTIF'], true)) {
                 return [
                     'status'  => false,
                     'code'    => 400,
-                    'message' => 'Password minimal 6 karakter'
+                    'message' => 'Status user tidak valid'
+                ];
+            }
+            $updateData['status'] = $newStatus;
+        }
+
+        if (!empty($data['password'])) {
+            if (strlen($data['password']) < 6 || strlen($data['password']) > 255) {
+                return [
+                    'status'  => false,
+                    'code'    => 400,
+                    'message' => 'Password harus 6 sampai 255 karakter'
                 ];
             }
             $updateData['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -330,11 +393,11 @@ class UserService
             ];
         }
 
-        if (strlen($data['new_password']) < 6) {
+        if (strlen($data['new_password']) < 6 || strlen($data['new_password']) > 255) {
             return [
                 'status'  => false,
                 'code'    => 400,
-                'message' => 'Password baru minimal 6 karakter'
+                'message' => 'Password baru harus 6 sampai 255 karakter'
             ];
         }
 

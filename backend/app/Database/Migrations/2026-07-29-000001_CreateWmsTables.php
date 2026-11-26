@@ -21,7 +21,7 @@ class CreateWmsTables extends Migration
             'updated_at'      => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addKey('id', true);
-        $this->forge->createTable('inbound_headers');
+        $this->forge->createTable('inbound');
 
         // ========== INBOUND DETAILS ==========
         $this->forge->addField([
@@ -48,7 +48,7 @@ class CreateWmsTables extends Migration
             'updated_at'      => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addKey('id', true);
-        $this->forge->createTable('outbound_headers');
+        $this->forge->createTable('outbound');
 
         // ========== OUTBOUND DETAILS ==========
         $this->forge->addField([
@@ -119,8 +119,8 @@ class CreateWmsTables extends Migration
         $this->forge->dropTable('stock_opname_sessions');
         $this->forge->dropTable('stock_adjustments');
         $this->forge->dropTable('outbound_details');
-        $this->forge->dropTable('outbound_headers');
+        $this->forge->dropTable('outbound');
         $this->forge->dropTable('inbound_details');
-        $this->forge->dropTable('inbound_headers');
+        $this->forge->dropTable('inbound');
     }
 }

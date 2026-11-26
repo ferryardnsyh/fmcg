@@ -1,5 +1,10 @@
 import { MAX_QTY } from "../constants/app";
 import { isIntegerInRange, toFiniteNumber } from "../utils/number";
+import {
+  validateDateNotPast,
+  validateDocumentNumber,
+  validateText,
+} from "../utils/validation";
 
 let rowSequence = 0;
 
@@ -44,7 +49,15 @@ export function stockQuantityError(row) {
   return "";
 }
 
-export function validateOutboundDetails(details) {
+export function validateOutboundDetails(details, form = null) {
+  if (form) {
+    const dateError = validateDateNotPast(form.delivery_date, "Tanggal keluar");
+    if (dateError) return dateError;
+    const numberError = validateDocumentNumber(form.delivery_number, "Nomor pengiriman", 50, false);
+    if (numberError) return numberError;
+    const notesError = validateText(form.notes, "Catatan", 65535, false);
+    if (notesError) return notesError;
+  }
   if (!details?.length) return "Minimal satu barang harus ditambahkan.";
 
   for (const row of details) {

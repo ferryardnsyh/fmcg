@@ -10,7 +10,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 ALTER TABLE users ADD UNIQUE INDEX idx_users_username (username);
 ALTER TABLE suppliers ADD UNIQUE INDEX idx_supplier_code (supplier_code);
-ALTER TABLE rack_locations ADD UNIQUE INDEX idx_rack_code (rack_code);
+ALTER TABLE rack ADD UNIQUE INDEX idx_rack_code (rack_code);
 
 -- ============================================================
 -- INDEX CONSTRAINTS (for FK columns and frequently queried cols)
@@ -24,9 +24,9 @@ ALTER TABLE products ADD INDEX idx_products_id_category (id_category);
 ALTER TABLE product_batches ADD INDEX idx_batches_id_product (id_product);
 ALTER TABLE product_batches ADD INDEX idx_batches_id_rack (id_rack);
 
--- inbound_headers
-ALTER TABLE inbound_headers ADD INDEX idx_inbound_id_supplier (id_supplier);
-ALTER TABLE inbound_headers ADD INDEX idx_inbound_created_by (created_by);
+-- inbound
+ALTER TABLE inbound ADD INDEX idx_inbound_id_supplier (id_supplier);
+ALTER TABLE inbound ADD INDEX idx_inbound_created_by (created_by);
 
 -- inbound_details
 ALTER TABLE inbound_details ADD INDEX idx_inbound_detail_id_inbound (id_inbound);
@@ -34,8 +34,8 @@ ALTER TABLE inbound_details ADD INDEX idx_inbound_detail_id_product (id_product)
 ALTER TABLE inbound_details ADD INDEX idx_inbound_detail_id_batch (id_batch);
 ALTER TABLE inbound_details ADD INDEX idx_inbound_detail_id_rack (id_rack);
 
--- outbound_headers
-ALTER TABLE outbound_headers ADD INDEX idx_outbound_created_by (created_by);
+-- outbound
+ALTER TABLE outbound ADD INDEX idx_outbound_created_by (created_by);
 
 -- outbound_details
 ALTER TABLE outbound_details ADD INDEX idx_outbound_detail_id_outbound (id_outbound);
@@ -75,28 +75,28 @@ ALTER TABLE product_batches
   FOREIGN KEY (id_product) REFERENCES products(id_product)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- product_batches -> rack_locations
+-- product_batches -> rack
 ALTER TABLE product_batches
   ADD CONSTRAINT fk_batches_rack
-  FOREIGN KEY (id_rack) REFERENCES rack_locations(id_rack)
+  FOREIGN KEY (id_rack) REFERENCES rack(id_rack)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- inbound_headers -> suppliers
-ALTER TABLE inbound_headers
+-- inbound -> suppliers
+ALTER TABLE inbound
   ADD CONSTRAINT fk_inbound_supplier
   FOREIGN KEY (id_supplier) REFERENCES suppliers(id_supplier)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- inbound_headers -> users (created_by)
-ALTER TABLE inbound_headers
+-- inbound -> users (created_by)
+ALTER TABLE inbound
   ADD CONSTRAINT fk_inbound_user
   FOREIGN KEY (created_by) REFERENCES users(id_user)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- inbound_details -> inbound_headers
+-- inbound_details -> inbound
 ALTER TABLE inbound_details
   ADD CONSTRAINT fk_inbound_detail_header
-  FOREIGN KEY (id_inbound) REFERENCES inbound_headers(id_inbound)
+  FOREIGN KEY (id_inbound) REFERENCES inbound(id_inbound)
   ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- inbound_details -> products
@@ -111,22 +111,22 @@ ALTER TABLE inbound_details
   FOREIGN KEY (id_batch) REFERENCES product_batches(id_batch)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- inbound_details -> rack_locations
+-- inbound_details -> rack
 ALTER TABLE inbound_details
   ADD CONSTRAINT fk_inbound_detail_rack
-  FOREIGN KEY (id_rack) REFERENCES rack_locations(id_rack)
+  FOREIGN KEY (id_rack) REFERENCES rack(id_rack)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- outbound_headers -> users (created_by)
-ALTER TABLE outbound_headers
+-- outbound -> users (created_by)
+ALTER TABLE outbound
   ADD CONSTRAINT fk_outbound_user
   FOREIGN KEY (created_by) REFERENCES users(id_user)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
--- outbound_details -> outbound_headers
+-- outbound_details -> outbound
 ALTER TABLE outbound_details
   ADD CONSTRAINT fk_outbound_detail_header
-  FOREIGN KEY (id_outbound) REFERENCES outbound_headers(id_outbound)
+  FOREIGN KEY (id_outbound) REFERENCES outbound(id_outbound)
   ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- outbound_details -> product_batches

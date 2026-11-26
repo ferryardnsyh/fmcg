@@ -107,10 +107,10 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
-                <th class="py-3">No Sesi</th>
+                <th class="py-3">Nomor Sesi</th>
                 <th class="py-3">Tanggal</th>
                 <th class="py-3">Status</th>
                 <th class="py-3 text-center pe-3">Aksi</th>
@@ -174,11 +174,11 @@
                       </div>
                       <div class="table-responsive">
                         <table class="table table-sm align-middle mb-0 bg-white">
-                          <thead class="table-light text-uppercase fs-7">
+                          <thead class="table-light fs-7">
                             <tr>
                               <th class="py-2">No</th>
                               <th class="py-2">Produk</th>
-                              <th class="py-2">Batch</th>
+                              <th class="py-2">Nomor Batch</th>
                               <th class="py-2">Stok Sistem</th>
                               <th class="py-2">Stok Fisik</th>
                               <th class="py-2">Selisih</th>
@@ -259,7 +259,7 @@
                 </div>
                 <div class="col-12">
                   <label class="form-label small fw-semibold">Catatan</label>
-                  <textarea class="form-control" rows="3" v-model="sessionForm.notes" inputmode="text" placeholder="Catatan sesi (opsional)"></textarea>
+                  <textarea class="form-control" rows="3" v-model="sessionForm.notes" inputmode="text" maxlength="65535" placeholder="Catatan sesi (opsional)"></textarea>
                 </div>
               </div>
               <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
@@ -298,6 +298,8 @@ import {
   opnameStatusLabel,
   opnameSystemStock,
   runWithConcurrency,
+  validateOpnameDetailRows,
+  validateOpnameSessionForm,
 } from "../../composables/useOpnameForm";
 import { MAX_QTY, PAGE_SIZE_OPTIONS } from "../../constants/app";
 import { formatDate, todayIso } from "../../utils/date";
@@ -412,6 +414,11 @@ const openCreateModal = () => {
 };
 
 const createSession = async () => {
+  const validationMessage = validateOpnameSessionForm(sessionForm.value);
+  if (validationMessage) {
+    Swal.fire("Validasi", validationMessage, "warning");
+    return;
+  }
   creating.value = true;
   try {
     const res = await opnameService.createSession({
@@ -439,16 +446,13 @@ const saveDetailResults = async (item) => {
   if (savingDetails.value) return;
   const sessionId = opnameSessionId(item);
   const details = getSessionDetails(sessionId);
-  if (!details.length) {
-    Swal.fire("Info", "Tidak ada detail untuk disimpan.", "info");
+  const validationMessage = validateOpnameDetailRows(details);
+  if (validationMessage) {
+    Swal.fire("Validasi", validationMessage, "warning");
     return;
   }
 
   const payloads = buildOpnameDetailPayloads(sessionId, details);
-  if (payloads.some((payload) => !payload.id_batch)) {
-    Swal.fire("Validasi", "Detail opname tanpa batch tidak dapat disimpan.", "warning");
-    return;
-  }
 
   savingDetails.value = true;
   try {

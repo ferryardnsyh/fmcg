@@ -53,13 +53,13 @@
             </div>
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-uppercase fs-7">
+                <thead class="table-light fs-7">
                   <tr>
                     <th class="py-3 ps-3">No</th>
-                    <th class="py-3">SKU</th>
+                    <th class="py-3">Kode Produk</th>
                     <th class="py-3">Nama Produk</th>
                     <th class="py-3">Total Stok</th>
-                    <th class="py-3">Stock Level</th>
+                    <th class="py-3">Tingkat Stok</th>
                     <th class="py-3 pe-3">Status</th>
                   </tr>
                 </thead>
@@ -95,12 +95,12 @@
             </div>
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-uppercase fs-7">
+                <thead class="table-light fs-7">
                   <tr>
                     <th class="py-3 ps-3">No</th>
                     <th class="py-3">Tanggal</th>
                     <th class="py-3">Tipe</th>
-                    <th class="py-3">No. Dokumen</th>
+                    <th class="py-3">Nomor Dokumen</th>
                     <th class="py-3 pe-3">Status</th>
                   </tr>
                 </thead>
@@ -141,13 +141,13 @@
             </div>
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-uppercase fs-7">
+                <thead class="table-light fs-7">
                   <tr>
                     <th class="py-3 ps-3">No</th>
-                    <th class="py-3">SKU</th>
+                    <th class="py-3">Kode Produk</th>
                     <th class="py-3">Nama Produk</th>
                     <th class="py-3">Stok Saat Ini</th>
-                    <th class="py-3">Stock Level</th>
+                    <th class="py-3">Tingkat Stok</th>
                     <th class="py-3 pe-3">Status</th>
                   </tr>
                 </thead>

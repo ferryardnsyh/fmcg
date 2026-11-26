@@ -45,7 +45,7 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3" style="width: 60px">No</th>
                 <th class="py-3" style="width: 110px" @click="toggleSort('category_code')" role="button">
@@ -149,7 +149,7 @@
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Kode Kategori</label>
-                <input type="text" inputmode="text" autocomplete="off" maxlength="10" class="form-control" v-model="form.category_code" :readonly="isEditMode" />
+                <input type="text" inputmode="text" autocomplete="off" maxlength="10" class="form-control" v-model="form.category_code" :pattern="CODE_PATTERN" :readonly="isEditMode" />
                 <small class="text-muted" v-if="!isEditMode">Otomatis jika dikosongkan</small>
               </div>
               <div class="mb-3">
@@ -195,6 +195,7 @@ import { getActionErrorMessage } from "../../services/apiNotifier";
 import { useAuth } from "../../stores/auth";
 import { DEBOUNCE } from "../../constants/app";
 import { formatDate } from "../../utils/date";
+import { CODE_PATTERN, validateCode, validateText } from "../../utils/validation";
 import { paginationRange as getPaginationRange } from "../../utils/pagination";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 
@@ -303,13 +304,17 @@ const openEditModal = (item) => {
 };
 
 const saveCategory = async () => {
-  if (!form.value.name.trim()) {
-    Swal.fire("Validasi", "Nama kategori wajib diisi.", "warning");
+  const nameError = validateText(form.value.name, "Nama kategori", 200);
+  if (nameError) {
+    Swal.fire("Validasi", nameError, "warning");
     return;
   }
-  if (!isEditMode.value && !form.value.category_code.trim()) {
-    Swal.fire("Validasi", "Kode kategori wajib diisi.", "warning");
-    return;
+  if (!isEditMode.value) {
+    const codeError = validateCode(form.value.category_code, "Kode kategori", 10);
+    if (codeError) {
+      Swal.fire("Validasi", codeError, "warning");
+      return;
+    }
   }
   saving.value = true;
   try {

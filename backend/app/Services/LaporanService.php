@@ -16,7 +16,7 @@ class LaporanService
     private function inboundReportQuery(?string $dateFrom, ?string $dateTo)
     {
         $query = $this->db
-            ->table('inbound_headers ih')
+            ->table('inbound ih')
             ->join('suppliers s', 's.id_supplier = ih.id_supplier', 'left')
             ->join('inbound_details id', 'id.id_inbound = ih.id_inbound', 'left');
 
@@ -34,7 +34,7 @@ class LaporanService
     private function outboundReportQuery(?string $dateFrom, ?string $dateTo)
     {
         $query = $this->db
-            ->table('outbound_headers oh')
+            ->table('outbound oh')
             ->join('outbound_details od', 'od.id_outbound = oh.id_outbound', 'left')
             ->where('oh.status', 'COMPLETED');
 

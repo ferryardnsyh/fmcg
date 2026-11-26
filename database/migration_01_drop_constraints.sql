@@ -21,23 +21,23 @@ ALTER TABLE products DROP FOREIGN KEY products_ibfk_4;  -- supplier_id → suppl
 -- product_batches
 ALTER TABLE product_batches DROP FOREIGN KEY product_batches_ibfk_1;  -- product_id → products
 ALTER TABLE product_batches DROP FOREIGN KEY product_batches_ibfk_2;  -- warehouse_id → warehouses
-ALTER TABLE product_batches DROP FOREIGN KEY product_batches_ibfk_3;  -- rack_location_id → rack_locations
+ALTER TABLE product_batches DROP FOREIGN KEY product_batches_ibfk_3;  -- rack_location_id → rack
 
--- inbound_headers
-ALTER TABLE inbound_headers DROP FOREIGN KEY inbound_headers_ibfk_1;  -- supplier_id → suppliers
-ALTER TABLE inbound_headers DROP FOREIGN KEY inbound_headers_ibfk_2;  -- created_by → users
+-- inbound
+ALTER TABLE inbound DROP FOREIGN KEY inbound_ibfk_1;  -- supplier_id → suppliers
+ALTER TABLE inbound DROP FOREIGN KEY inbound_ibfk_2;  -- created_by → users
 
 -- inbound_details
-ALTER TABLE inbound_details DROP FOREIGN KEY inbound_details_ibfk_1;  -- inbound_header_id → inbound_headers
+ALTER TABLE inbound_details DROP FOREIGN KEY inbound_details_ibfk_1;  -- inbound_header_id → inbound
 ALTER TABLE inbound_details DROP FOREIGN KEY inbound_details_ibfk_2;  -- product_id → products
 ALTER TABLE inbound_details DROP FOREIGN KEY inbound_details_ibfk_3;  -- batch_id → product_batches
-ALTER TABLE inbound_details DROP FOREIGN KEY inbound_details_ibfk_4;  -- rack_location_id → rack_locations
+ALTER TABLE inbound_details DROP FOREIGN KEY inbound_details_ibfk_4;  -- rack_location_id → rack
 
--- outbound_headers
-ALTER TABLE outbound_headers DROP FOREIGN KEY outbound_headers_ibfk_2;  -- created_by → users
+-- outbound
+ALTER TABLE outbound DROP FOREIGN KEY outbound_ibfk_2;  -- created_by → users
 
 -- outbound_details
-ALTER TABLE outbound_details DROP FOREIGN KEY outbound_details_ibfk_1;  -- outbound_header_id → outbound_headers
+ALTER TABLE outbound_details DROP FOREIGN KEY outbound_details_ibfk_1;  -- outbound_header_id → outbound
 ALTER TABLE outbound_details DROP FOREIGN KEY outbound_details_ibfk_2;  -- product_id → products
 ALTER TABLE outbound_details DROP FOREIGN KEY outbound_details_ibfk_3;  -- batch_id → product_batches
 
@@ -55,8 +55,8 @@ ALTER TABLE stock_adjustments DROP FOREIGN KEY stock_adjustments_ibfk_2;  -- bat
 ALTER TABLE stock_adjustments DROP FOREIGN KEY stock_adjustments_ibfk_3;  -- created_by → users
 ALTER TABLE stock_adjustments DROP FOREIGN KEY stock_adjustments_ibfk_4;  -- approved_by → users
 
--- rack_locations
-ALTER TABLE rack_locations DROP FOREIGN KEY rack_locations_ibfk_1;  -- warehouse_id → warehouses
+-- rack
+ALTER TABLE rack DROP FOREIGN KEY rack_ibfk_1;  -- warehouse_id → warehouses
 
 -- disposal_details
 ALTER TABLE disposal_details DROP FOREIGN KEY fk_dd_batch;

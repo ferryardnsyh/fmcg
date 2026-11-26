@@ -410,7 +410,7 @@ class NotificationService
     public function generatePendingApprovalNotifications(): int
     {
         $inbounds = $this->db
-            ->table('inbound_headers ih')
+            ->table('inbound ih')
             ->select('ih.id_inbound, ih.reception_number, ih.reception_date, ih.created_at, s.name AS supplier_name')
             ->join('suppliers s', 's.id_supplier = ih.id_supplier', 'left')
             ->where('ih.status', 'DRAFT')

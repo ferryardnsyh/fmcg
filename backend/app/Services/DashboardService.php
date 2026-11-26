@@ -52,13 +52,13 @@ class DashboardService
             ->countAllResults();
 
         $barangMasukHariIni = $this->db
-            ->table('inbound_headers')
+            ->table('inbound')
             ->where('reception_date', date('Y-m-d'))
             ->where('status', 'COMPLETED')
             ->countAllResults();
 
         $barangKeluarHariIni = $this->db
-            ->table('outbound_headers')
+            ->table('outbound')
             ->where('delivery_date', date('Y-m-d'))
             ->where('status', 'COMPLETED')
             ->countAllResults();
@@ -85,7 +85,7 @@ class DashboardService
             $dates[] = date('Y-m-d', strtotime("-$i days"));
         }
 
-        $inbound = $this->db->table('inbound_headers')
+        $inbound = $this->db->table('inbound')
             ->select("reception_date AS date, COUNT(*) AS total")
             ->where('reception_date >=', $dates[0])
             ->where('reception_date <=', $dates[$days - 1])
@@ -93,7 +93,7 @@ class DashboardService
             ->groupBy('reception_date')
             ->get()->getResultArray();
 
-        $outbound = $this->db->table('outbound_headers')
+        $outbound = $this->db->table('outbound')
             ->select("delivery_date AS date, COUNT(*) AS total")
             ->where('delivery_date >=', $dates[0])
             ->where('delivery_date <=', $dates[$days - 1])
@@ -142,7 +142,7 @@ class DashboardService
             ')
             ->join('product_batches pb', 'pb.id_batch = od.id_batch', 'left')
             ->join('products p', 'p.id_product = pb.id_product', 'left')
-            ->join('outbound_headers oh', 'oh.id_outbound = od.id_outbound', 'left')
+            ->join('outbound oh', 'oh.id_outbound = od.id_outbound', 'left')
             ->where('oh.status', 'COMPLETED')
             ->groupBy('pb.id_product, p.name, p.id_product')
             ->orderBy('total_quantity', 'DESC')

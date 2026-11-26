@@ -60,13 +60,13 @@ class OutboundService
 
     private function isValidDate($value): bool
     {
-        return ValueRules::isValidIsoDate($value);
+        return ValueRules::notPastIsoDate($value) !== null;
     }
 
     private function getLockedHeader(int $id): ?array
     {
         $header = $this->db
-            ->query('SELECT * FROM outbound_headers WHERE id_outbound = ? FOR UPDATE', [$id])
+            ->query('SELECT * FROM outbound WHERE id_outbound = ? FOR UPDATE', [$id])
             ->getRowArray();
 
         return $header ?: null;
@@ -103,7 +103,7 @@ class OutboundService
     {
         do {
             $number = 'OUT-' . str_pad((string)random_int(1, 999999), 6, '0', STR_PAD_LEFT);
-            $exists = $this->db->table('outbound_headers')->where('delivery_number', $number)->countAllResults() > 0;
+            $exists = $this->db->table('outbound')->where('delivery_number', $number)->countAllResults() > 0;
         } while ($exists);
 
         return $number;
@@ -112,7 +112,7 @@ class OutboundService
     public function getAll(): array
     {
         $data = $this->db
-            ->table('outbound_headers oh')
+            ->table('outbound oh')
             ->select('oh.*')
             ->orderBy('oh.created_at', 'DESC')
             ->get()
@@ -133,7 +133,7 @@ class OutboundService
         }
 
         $header = $this->db
-            ->table('outbound_headers oh')
+            ->table('outbound oh')
             ->select('oh.*')
             ->where('oh.id_outbound', $idOutbound)
             ->get()
@@ -171,7 +171,7 @@ class OutboundService
     private function validateCreatePayload(array $data): array
     {
         if (!$this->isValidDate($data['delivery_date'] ?? null)) {
-            return [null, $this->fail('Tanggal pengiriman wajib diisi dengan format YYYY-MM-DD', 400)];
+            return [null, $this->fail('Tanggal pengiriman wajib diisi dengan format YYYY-MM-DD dan tidak boleh sebelum hari ini', 400)];
         }
 
         if (!array_key_exists('details', $data) || !is_array($data['details'])) {
@@ -187,11 +187,19 @@ class OutboundService
         if ($deliveryNumber === '') {
             $deliveryNumber = null;
         }
+        if ($deliveryNumber !== null && ValueRules::normalizeDocumentNumber($deliveryNumber, 50) === null) {
+            return [null, $this->fail('Nomor pengiriman hanya boleh huruf, angka, spasi, titik, garis bawah, tanda hubung, atau garis miring', 400)];
+        }
+
+        $notes = $this->sanitizeText($data['notes'] ?? null);
+        if ($notes !== null && mb_strlen($notes) > 65535) {
+            return [null, $this->fail('Catatan maksimal 65535 karakter', 400)];
+        }
 
         return [[
             'delivery_date'   => $data['delivery_date'],
             'delivery_number' => $deliveryNumber,
-            'notes'           => $this->sanitizeText($data['notes'] ?? null),
+            'notes'           => $notes,
             'details'         => $details,
         ], null];
     }
@@ -214,7 +222,7 @@ class OutboundService
                 $deliveryNumber = $this->generateDeliveryNumber();
             }
 
-            $this->db->table('outbound_headers')->insert([
+            $this->db->table('outbound')->insert([
                 'delivery_number' => $deliveryNumber,
                 'delivery_date'   => $payload['delivery_date'],
                 'notes'           => $payload['notes'],
@@ -237,19 +245,26 @@ class OutboundService
         if (array_key_exists('delivery_number', $data)) {
             $deliveryNumber = $this->sanitizeText($data['delivery_number']);
             if ($deliveryNumber !== null && $deliveryNumber !== '') {
+                if (ValueRules::normalizeDocumentNumber($deliveryNumber, 50) === null) {
+                    return [null, null, $this->fail('Nomor pengiriman hanya boleh huruf, angka, spasi, titik, garis bawah, tanda hubung, atau garis miring', 400)];
+                }
                 $updateData['delivery_number'] = $deliveryNumber;
             }
         }
 
         if (array_key_exists('delivery_date', $data)) {
             if (!$this->isValidDate($data['delivery_date'])) {
-                return [null, null, $this->fail('Tanggal pengiriman tidak valid', 400)];
+                return [null, null, $this->fail('Tanggal pengiriman tidak valid atau sebelum hari ini', 400)];
             }
             $updateData['delivery_date'] = $data['delivery_date'];
         }
 
         if (array_key_exists('notes', $data)) {
-            $updateData['notes'] = $this->sanitizeText($data['notes']);
+            $notes = $this->sanitizeText($data['notes']);
+            if ($notes !== null && mb_strlen($notes) > 65535) {
+                return [null, null, $this->fail('Catatan maksimal 65535 karakter', 400)];
+            }
+            $updateData['notes'] = $notes;
         }
 
         $details = null;
@@ -296,7 +311,7 @@ class OutboundService
             }
 
             $updateData['updated_at'] = date('Y-m-d H:i:s');
-            $this->db->table('outbound_headers')->where('id_outbound', $idOutbound)->update($updateData);
+            $this->db->table('outbound')->where('id_outbound', $idOutbound)->update($updateData);
 
             if ($details !== null) {
                 $this->db->table('outbound_details')->where('id_outbound', $idOutbound)->delete();
@@ -331,7 +346,7 @@ class OutboundService
             }
 
             $this->db->table('outbound_details')->where('id_outbound', $idOutbound)->delete();
-            $this->db->table('outbound_headers')->where('id_outbound', $idOutbound)->delete();
+            $this->db->table('outbound')->where('id_outbound', $idOutbound)->delete();
 
             return $this->ok('Outbound berhasil dihapus');
         }, 'Gagal menghapus outbound', 'Gagal menghapus outbound');

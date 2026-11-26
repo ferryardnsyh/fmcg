@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class OutboundHeaderModel extends Model
 {
-    protected $table = 'outbound_headers';
+    protected $table = 'outbound';
 
     protected $primaryKey = 'id_outbound';
 

@@ -79,7 +79,7 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr class="print-table-header">
                 <th colspan="100" class="py-2 text-center fw-bold" style="font-size:14px;text-transform:none;letter-spacing:0">
                   <div class="d-flex flex-column align-items-center">
@@ -182,37 +182,37 @@ const printDate = computed(() => formatDate(new Date(), "id-ID", { day: "2-digit
 
 const columnConfig = {
   barangMasuk: [
-    { key: "reception_number", label: "No. Penerimaan" },
+    { key: "reception_number", label: "Nomor Penerimaan" },
     { key: "reception_date", label: "Tanggal" },
     { key: "supplier_name", label: "Supplier" },
     { key: "total_quantity", label: "Jumlah Item", align: "end" },
     { key: "status", label: "Status", align: "center" },
   ],
   barangKeluar: [
-    { key: "delivery_number", label: "No. Pengiriman" },
+    { key: "delivery_number", label: "Nomor Pengiriman" },
     { key: "delivery_date", label: "Tanggal" },
     { key: "total_quantity", label: "Jumlah Item", align: "end" },
     { key: "status", label: "Status", align: "center" },
   ],
   stok: [
     { key: "name", label: "Produk" },
-    { key: "sku_code", label: "SKU" },
+    { key: "sku_code", label: "Kode Produk" },
     { key: "total_available", label: "Stok Tersedia", align: "end" },
     { key: "unit", label: "Satuan" },
-    { key: "minimum_stock", label: "Min Stok", align: "end" },
+    { key: "minimum_stock", label: "Stok Minimum", align: "end" },
   ],
   stokOpname: [
     { key: "product_name", label: "Produk" },
-    { key: "batch_number", label: "Batch No" },
+    { key: "batch_number", label: "Nomor Batch" },
     { key: "system_quantity", label: "Stok Sistem", align: "end" },
     { key: "physical_quantity", label: "Stok Fisik", align: "end" },
     { key: "difference", label: "Selisih", align: "end" },
   ],
   barangExpired: [
     { key: "product_name", label: "Produk" },
-    { key: "batch_number", label: "Batch No" },
+    { key: "batch_number", label: "Nomor Batch" },
     { key: "quantity", label: "Stok", align: "end" },
-    { key: "expiry_date", label: "Tgl Expired" },
+    { key: "expiry_date", label: "Tanggal Kedaluwarsa" },
     { key: "days_left", label: "Sisa Hari", align: "end" },
     { key: "status_label", label: "Status", align: "center" },
   ],

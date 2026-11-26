@@ -88,9 +88,9 @@ CREATE TABLE `inbound_details` (
   KEY `idx_inbound_detail_id_batch` (`id_batch`),
   KEY `idx_inbound_detail_id_rack` (`id_rack`),
   CONSTRAINT `fk_inbound_detail_batch` FOREIGN KEY (`id_batch`) REFERENCES `product_batches` (`id_batch`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_inbound_detail_header` FOREIGN KEY (`id_inbound`) REFERENCES `inbound_headers` (`id_inbound`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_inbound_detail_header` FOREIGN KEY (`id_inbound`) REFERENCES `inbound` (`id_inbound`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_inbound_detail_product` FOREIGN KEY (`id_product`) REFERENCES `products` (`id_product`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_inbound_detail_rack` FOREIGN KEY (`id_rack`) REFERENCES `rack_locations` (`id_rack`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_inbound_detail_rack` FOREIGN KEY (`id_rack`) REFERENCES `rack` (`id_rack`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -128,13 +128,13 @@ COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
 --
--- Table structure for table `inbound_headers`
+-- Table structure for table `inbound`
 --
 
-DROP TABLE IF EXISTS `inbound_headers`;
+DROP TABLE IF EXISTS `inbound`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `inbound_headers` (
+CREATE TABLE `inbound` (
   `id_inbound` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `reception_number` varchar(50) NOT NULL,
   `id_supplier` int(10) unsigned DEFAULT NULL,
@@ -159,13 +159,13 @@ CREATE TABLE `inbound_headers` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `inbound_headers`
+-- Dumping data for table `inbound`
 --
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `inbound_headers` WRITE;
-/*!40000 ALTER TABLE `inbound_headers` DISABLE KEYS */;
-INSERT INTO `inbound_headers` VALUES
+LOCK TABLES `inbound` WRITE;
+/*!40000 ALTER TABLE `inbound` DISABLE KEYS */;
+INSERT INTO `inbound` VALUES
 (1,'INB-20261110-001',16,'2026-11-10','PO-20261101-001','DN-001','Penerimaan rutin susu','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:17:50'),
 (2,'INB-20261111-002',1,'2026-11-11','PO-20261101-002','DN-002','Penerimaan mi instan','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:17:50'),
 (3,'INB-20261112-003',7,'2026-11-12','PO-20261102-001','DN-003','Penerimaan kopi','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:17:50'),
@@ -176,7 +176,7 @@ INSERT INTO `inbound_headers` VALUES
 (8,'INB-20261119-008',1,'2026-11-19','PO-20261102-003','DN-008','Penerimaan snack','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:17:50'),
 (9,'INB-20261120-009',2,'2026-11-20','PO-20261103-002','DN-009','Penerimaan teh','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:17:50'),
 (10,'INB-20261121-010',1,'2026-11-21','PO-20261105-002','DN-010','Penerimaan gula pasir','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:17:50');
-/*!40000 ALTER TABLE `inbound_headers` ENABLE KEYS */;
+/*!40000 ALTER TABLE `inbound` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
@@ -251,7 +251,7 @@ CREATE TABLE `outbound_details` (
   KEY `idx_outbound_detail_id_outbound` (`id_outbound`),
   KEY `idx_outbound_detail_id_batch` (`id_batch`),
   CONSTRAINT `fk_outbound_detail_batch` FOREIGN KEY (`id_batch`) REFERENCES `product_batches` (`id_batch`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_outbound_detail_header` FOREIGN KEY (`id_outbound`) REFERENCES `outbound_headers` (`id_outbound`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_outbound_detail_header` FOREIGN KEY (`id_outbound`) REFERENCES `outbound` (`id_outbound`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -281,13 +281,13 @@ COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
 --
--- Table structure for table `outbound_headers`
+-- Table structure for table `outbound`
 --
 
-DROP TABLE IF EXISTS `outbound_headers`;
+DROP TABLE IF EXISTS `outbound`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `outbound_headers` (
+CREATE TABLE `outbound` (
   `id_outbound` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `delivery_number` varchar(50) NOT NULL,
   `delivery_date` date DEFAULT NULL,
@@ -306,20 +306,20 @@ CREATE TABLE `outbound_headers` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `outbound_headers`
+-- Dumping data for table `outbound`
 --
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `outbound_headers` WRITE;
-/*!40000 ALTER TABLE `outbound_headers` DISABLE KEYS */;
-INSERT INTO `outbound_headers` VALUES
+LOCK TABLES `outbound` WRITE;
+/*!40000 ALTER TABLE `outbound` DISABLE KEYS */;
+INSERT INTO `outbound` VALUES
 (1,'OUT-20261120-001','2026-11-20','Pengiriman ke Toko Pusat','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:08:12'),
 (2,'OUT-20261121-002','2026-11-21','Pengiriman ke Cabang Barat','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:08:12'),
 (3,'OUT-20261122-003','2026-11-22','Pengiriman ke Cabang Timur','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:08:12'),
 (4,'OUT-20261122-004','2026-11-22','Pengiriman ke Toka Swalayan','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:08:12'),
 (5,'OUT-20261123-005','2026-11-23','Pengiriman ke Minimarket Utara','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:08:12'),
 (6,'OUT-20261123-006','2026-11-23','Pengiriman ke Grosir Selatan','COMPLETED',1,'2026-11-24 00:08:12','2026-11-24 00:08:12');
-/*!40000 ALTER TABLE `outbound_headers` ENABLE KEYS */;
+/*!40000 ALTER TABLE `outbound` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
@@ -346,7 +346,7 @@ CREATE TABLE `product_batches` (
   KEY `idx_batches_id_product` (`id_product`),
   KEY `idx_batches_id_rack` (`id_rack`),
   CONSTRAINT `fk_batches_product` FOREIGN KEY (`id_product`) REFERENCES `products` (`id_product`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_batches_rack` FOREIGN KEY (`id_rack`) REFERENCES `rack_locations` (`id_rack`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_batches_rack` FOREIGN KEY (`id_rack`) REFERENCES `rack` (`id_rack`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -486,13 +486,13 @@ COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
 --
--- Table structure for table `rack_locations`
+-- Table structure for table `rack`
 --
 
-DROP TABLE IF EXISTS `rack_locations`;
+DROP TABLE IF EXISTS `rack`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rack_locations` (
+CREATE TABLE `rack` (
   `id_rack` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `rack_code` varchar(50) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
@@ -503,13 +503,13 @@ CREATE TABLE `rack_locations` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `rack_locations`
+-- Dumping data for table `rack`
 --
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `rack_locations` WRITE;
-/*!40000 ALTER TABLE `rack_locations` DISABLE KEYS */;
-INSERT INTO `rack_locations` VALUES
+LOCK TABLES `rack` WRITE;
+/*!40000 ALTER TABLE `rack` DISABLE KEYS */;
+INSERT INTO `rack` VALUES
 (1,'RACK-A01','Rak A-01','AKTIF'),
 (2,'RACK-A02','Rak A-02','AKTIF'),
 (3,'RACK-A03','Rak A-03','AKTIF'),
@@ -518,7 +518,7 @@ INSERT INTO `rack_locations` VALUES
 (6,'RACK-B02','Rak B-02','AKTIF'),
 (7,'RACK-B03','Rak B-03','AKTIF'),
 (8,'RACK-B04','Rak B-04','AKTIF');
-/*!40000 ALTER TABLE `rack_locations` ENABLE KEYS */;
+/*!40000 ALTER TABLE `rack` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;

@@ -25,13 +25,13 @@
         </div>
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
-                <th class="py-3">ID Adjustment</th>
-                <th class="py-3">Batch</th>
+                <th class="py-3">Nomor Penyesuaian Stok</th>
+                <th class="py-3">Nomor Batch</th>
                 <th class="py-3">Tipe</th>
-                <th class="py-3">Quantity</th>
+                <th class="py-3">Jumlah</th>
                 <th class="py-3">Status</th>
                 <th class="py-3">Alasan</th>
                 <th class="py-3 pe-3 text-center">Aksi</th>

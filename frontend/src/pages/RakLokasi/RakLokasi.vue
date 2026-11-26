@@ -92,7 +92,7 @@
         <!-- Table -->
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
                 <th class="py-3">Kode Rak</th>
@@ -195,6 +195,7 @@
                     v-model="form.rack_code"
                     placeholder="Contoh: RAK-A01"
                     maxlength="50"
+                    :pattern="CODE_PATTERN"
                     required
                   />
                 </div>
@@ -249,6 +250,7 @@ import { usePagination } from "../../composables/usePagination";
 import { useConfirm } from "../../composables/useConfirm";
 import { useAuth } from "../../stores/auth";
 import { DEBOUNCE, RACK_PAGE_SIZE } from "../../constants/app";
+import { CODE_PATTERN, validateCode, validateText } from "../../utils/validation";
 import BasePagination from "../../components/BasePagination.vue";
 import PageErrorAlert from "../../components/PageErrorAlert.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -400,6 +402,16 @@ const openEditModal = (item) => {
 };
 
 const saveRak = async () => {
+  const codeError = validateCode(form.value.rack_code, "Kode rak", 50);
+  if (codeError) {
+    Swal.fire("Validasi", codeError, "warning");
+    return;
+  }
+  const nameError = validateText(form.value.name, "Nama rak", 100, false);
+  if (nameError) {
+    Swal.fire("Validasi", nameError, "warning");
+    return;
+  }
   saving.value = true;
   try {
     const payload = {

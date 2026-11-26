@@ -34,7 +34,7 @@ trait PreparesInboundDetails
                 return [[], $this->fail('Baris ' . $row . ': Produk wajib dipilih')];
             }
 
-            [$batchNumber, $error] = $this->sanitizeText(
+            [$batchNumber, $error] = $this->sanitizeDocumentText(
                 $detail['batch_number'] ?? null,
                 self::BATCH_NUMBER_LENGTH,
                 'Baris ' . $row . ': Batch/Lot',
@@ -187,7 +187,7 @@ trait PreparesInboundDetails
     private function validateCompletionHeader(string $id): array
     {
         $header = $this->db->query(
-            "SELECT ih.*, s.name AS supplier_name FROM inbound_headers ih LEFT JOIN suppliers s ON s.id_supplier = ih.id_supplier WHERE ih.id_inbound = ? FOR UPDATE",
+            "SELECT ih.*, s.name AS supplier_name FROM inbound ih LEFT JOIN suppliers s ON s.id_supplier = ih.id_supplier WHERE ih.id_inbound = ? FOR UPDATE",
             [$id]
         )->getRowArray();
 
@@ -273,7 +273,7 @@ trait PreparesInboundDetails
                 return [[], $this->fail('Baris ' . $row . ': Produk tidak ditemukan, tidak aktif, atau tidak sesuai dengan supplier yang dipilih')];
             }
 
-            [$batchNumber, $error] = $this->sanitizeText($detail['batch_number'] ?? null, self::BATCH_NUMBER_LENGTH, 'Baris ' . $row . ': Batch/Lot', true);
+            [$batchNumber, $error] = $this->sanitizeDocumentText($detail['batch_number'] ?? null, self::BATCH_NUMBER_LENGTH, 'Baris ' . $row . ': Batch/Lot', true);
             if ($error !== null) {
                 return [[], $error];
             }
@@ -354,7 +354,7 @@ trait PreparesInboundDetails
 
     private function finalizeInboundHeader(string $id): void
     {
-        $this->db->table('inbound_headers')
+        $this->db->table('inbound')
             ->where('id_inbound', $id)
             ->update([
                 'status'     => 'COMPLETED',

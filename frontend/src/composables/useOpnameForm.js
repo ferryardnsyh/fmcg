@@ -1,4 +1,6 @@
-import { toFiniteNumber } from "../utils/number";
+import { MAX_QTY } from "../constants/app";
+import { isIntegerInRange, toFiniteNumber } from "../utils/number";
+import { validateDateNotPast, validateText } from "../utils/validation";
 
 export const OPNAME_STATUS = Object.freeze({
   DRAFT: "DRAFT",
@@ -75,6 +77,26 @@ export function opnamePhysicalStock(detail) {
   return toNumericQuantity(
     detail?.physical_stock ?? detail?.stok_fisik ?? detail?.physical_quantity,
   );
+}
+
+export function validateOpnameSessionForm(form) {
+  const dateError = validateDateNotPast(form?.opname_date, "Tanggal opname");
+  if (dateError) return dateError;
+  const notesError = validateText(form?.notes, "Catatan", 65535, false);
+  if (notesError) return notesError;
+  return "";
+}
+
+export function validateOpnameDetailRows(details) {
+  if (!details?.length) return "Tidak ada detail untuk disimpan.";
+  for (let i = 0; i < details.length; i++) {
+    const row = details[i];
+    if (!row?.id_batch) return `Baris ${i + 1}: Batch wajib dipilih.`;
+    if (!isIntegerInRange(row.physical_quantity, 0, MAX_QTY)) {
+      return `Baris ${i + 1}: Stok fisik harus bilangan bulat antara 0 dan ${MAX_QTY}.`;
+    }
+  }
+  return "";
 }
 
 export function buildOpnameDetailPayloads(sessionId, details) {

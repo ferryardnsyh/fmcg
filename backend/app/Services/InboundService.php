@@ -98,11 +98,25 @@ class InboundService
         return [$value, null];
     }
 
+    private function sanitizeDocumentText($value, int $maxLength, string $label, bool $required): array
+    {
+        [$value, $error] = $this->sanitizeText($value, $maxLength, $label, $required);
+        if ($error !== null || $value === null) {
+            return [$value, $error];
+        }
+
+        if (ValueRules::normalizeDocumentNumber($value, $maxLength) === null) {
+            return [null, $this->fail($label . ' hanya boleh huruf, angka, spasi, titik, garis bawah, tanda hubung, atau garis miring')];
+        }
+
+        return [$value, null];
+    }
+
     private function validateDate($value, string $label): array
     {
-        $date = ValueRules::parseIsoDate($value, true);
+        $date = ValueRules::notPastIsoDate($value);
         if ($date === null) {
-            $message = ($value === null || !is_string($value)) ? $label . ' wajib diisi' : $label . ' tidak valid';
+            $message = ($value === null || !is_string($value)) ? $label . ' wajib diisi' : $label . ' tidak valid atau sebelum hari ini';
 
             return [null, $this->fail($message)];
         }
@@ -140,7 +154,7 @@ class InboundService
             return [null, $this->fail('Baris ' . $row . ': Rak wajib dipilih')];
         }
 
-        $exists = $this->db->table('rack_locations')
+        $exists = $this->db->table('rack')
             ->where('id_rack', $rackId)
             ->where('status', WmsPolicy::STATUS_ACTIVE)
             ->countAllResults();
@@ -164,12 +178,12 @@ class InboundService
             return [[], $error];
         }
 
-        [$poNumber, $error] = $this->sanitizeText($data['po_number'] ?? null, self::DOCUMENT_NUMBER_LENGTH, 'Nomor PO', true);
+        [$poNumber, $error] = $this->sanitizeDocumentText($data['po_number'] ?? null, self::DOCUMENT_NUMBER_LENGTH, 'Nomor PO', true);
         if ($error !== null) {
             return [[], $error];
         }
 
-        [$deliveryNoteNumber, $error] = $this->sanitizeText($data['delivery_note_number'] ?? null, self::DOCUMENT_NUMBER_LENGTH, 'Nomor Surat Jalan', true);
+        [$deliveryNoteNumber, $error] = $this->sanitizeDocumentText($data['delivery_note_number'] ?? null, self::DOCUMENT_NUMBER_LENGTH, 'Nomor Surat Jalan', true);
         if ($error !== null) {
             return [[], $error];
         }
@@ -190,7 +204,7 @@ class InboundService
 
     private function getDraftHeader(string $id, string $statusMessage): array
     {
-        $header = $this->db->table('inbound_headers')->where('id_inbound', $id)->get()->getRowArray();
+        $header = $this->db->table('inbound')->where('id_inbound', $id)->get()->getRowArray();
         if (!$header) {
             return [null, $this->fail('Inbound tidak ditemukan', 404)];
         }
@@ -217,14 +231,14 @@ class InboundService
         $updateData = ['updated_at' => date('Y-m-d H:i:s')];
 
         if (array_key_exists('po_number', $data)) {
-            [$value, $error] = $this->sanitizeText($data['po_number'], self::DOCUMENT_NUMBER_LENGTH, 'Nomor PO', false);
+            [$value, $error] = $this->sanitizeDocumentText($data['po_number'], self::DOCUMENT_NUMBER_LENGTH, 'Nomor PO', false);
             if ($error !== null) {
                 return [[], null, $error];
             }
             $updateData['po_number'] = $value;
         }
         if (array_key_exists('delivery_note_number', $data)) {
-            [$value, $error] = $this->sanitizeText($data['delivery_note_number'], self::DOCUMENT_NUMBER_LENGTH, 'Nomor Surat Jalan', false);
+            [$value, $error] = $this->sanitizeDocumentText($data['delivery_note_number'], self::DOCUMENT_NUMBER_LENGTH, 'Nomor Surat Jalan', false);
             if ($error !== null) {
                 return [[], null, $error];
             }
@@ -266,7 +280,7 @@ class InboundService
     {
         do {
             $number = 'INB-' . str_pad(random_int(1, 999999), 6, '0', STR_PAD_LEFT);
-            $exists = $this->db->table('inbound_headers')->where('reception_number', $number)->countAllResults() > 0;
+            $exists = $this->db->table('inbound')->where('reception_number', $number)->countAllResults() > 0;
         } while ($exists);
 
         return $number;
@@ -286,7 +300,7 @@ class InboundService
             $receptionNumber = $this->generateReceptionNumber();
 
             try {
-                $this->db->table('inbound_headers')->insert([
+                $this->db->table('inbound')->insert([
                     'reception_number'     => $receptionNumber,
                     'po_number'            => $header['po_number'],
                     'delivery_note_number' => $header['delivery_note_number'],
@@ -323,7 +337,7 @@ class InboundService
         $data = $this->db->query("
             SELECT ih.*, s.name AS supplier_name, s.supplier_code AS supplier_code,
                    ds.expiry_dates AS expiry_dates, ds.nearest_expiry_date AS nearest_expiry_date
-            FROM inbound_headers ih
+            FROM inbound ih
             LEFT JOIN suppliers s ON s.id_supplier = ih.id_supplier
             LEFT JOIN ($summarySql) ds ON ds.id_inbound = ih.id_inbound
             ORDER BY ih.created_at DESC
@@ -338,7 +352,7 @@ class InboundService
     public function getById(string $id): array
     {
         $header = $this->db
-            ->table('inbound_headers ih')
+            ->table('inbound ih')
             ->select('
                 ih.*,
                 s.name AS supplier_name,
@@ -436,7 +450,7 @@ class InboundService
         }
 
         return $this->runServiceTransaction(function () use ($id, $updateData, $details) {
-            $this->db->table('inbound_headers')->where('id_inbound', $id)->update($updateData);
+            $this->db->table('inbound')->where('id_inbound', $id)->update($updateData);
 
             if ($details !== null) {
                 $error = $this->syncInboundDetails($id, $details);
@@ -458,7 +472,7 @@ class InboundService
 
         return $this->runServiceTransaction(function () use ($id) {
             $this->db->table('inbound_details')->where('id_inbound', $id)->delete();
-            $this->db->table('inbound_headers')->where('id_inbound', $id)->delete();
+            $this->db->table('inbound')->where('id_inbound', $id)->delete();
 
             return $this->makeSuccessResult('Inbound berhasil dihapus');
         }, 'InboundService::delete', 'Gagal menghapus inbound. Silakan coba lagi.', 500, true);

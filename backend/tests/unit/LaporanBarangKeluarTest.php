@@ -95,7 +95,7 @@ final class LaporanBarangKeluarTest extends CIUnitTestCase
     {
         $deliveryNumber = 'LAP3-' . strtoupper(bin2hex(random_bytes(5)));
 
-        $this->db->table('outbound_headers')->insert([
+        $this->db->table('outbound')->insert([
             'delivery_number' => $deliveryNumber,
             'delivery_date'   => $date,
             'status'          => $status,

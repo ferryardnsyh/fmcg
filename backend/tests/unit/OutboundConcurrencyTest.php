@@ -56,7 +56,7 @@ final class OutboundConcurrencyTest extends CIUnitTestCase
         ]);
         $this->batchId = (int)$this->db->insertID();
 
-        $this->db->table('outbound_headers')->insert([
+        $this->db->table('outbound')->insert([
             'delivery_number' => 'OUT-CONC-' . strtoupper(bin2hex(random_bytes(4))),
             'delivery_date'   => date('Y-m-d'),
             'status'          => 'DRAFT',
@@ -80,7 +80,7 @@ final class OutboundConcurrencyTest extends CIUnitTestCase
         if (($active['db_name'] ?? null) === self::EXPECTED_DATABASE) {
             if ($this->headerId !== null) {
                 $this->db->table('outbound_details')->where('id_outbound', $this->headerId)->delete();
-                $this->db->table('outbound_headers')->where('id_outbound', $this->headerId)->delete();
+                $this->db->table('outbound')->where('id_outbound', $this->headerId)->delete();
             }
 
             if ($this->batchId !== null) {
@@ -174,7 +174,7 @@ PHP;
             ->getRowArray();
         $this->assertSame(2, (int)$stock['quantity']);
 
-        $header = $this->db->table('outbound_headers')
+        $header = $this->db->table('outbound')
             ->select('status')
             ->where('id_outbound', $this->headerId)
             ->get()

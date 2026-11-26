@@ -1,5 +1,6 @@
 import { MAX_QTY } from "../constants/app";
 import { isIntegerInRange, toFiniteNumber } from "../utils/number";
+import { validateText } from "../utils/validation";
 
 export function normalizeAdjustmentStatus(status) {
   const value = String(status ?? "").trim().toUpperCase();
@@ -52,7 +53,8 @@ export function validateAdjustmentForm(form) {
   if (!isIntegerInRange(quantity, 1, MAX_QTY)) {
     return `Quantity harus bilangan bulat antara 1 dan ${MAX_QTY}.`;
   }
-  if (!String(form?.reason || "").trim()) return "Alasan harus diisi.";
+  const reasonError = validateText(form?.reason, "Alasan", 200);
+  if (reasonError) return reasonError;
   return "";
 }
 

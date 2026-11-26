@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Services\Concerns\ManagesOpnameWorkflows;
 use App\Services\Concerns\ServiceResults;
 use App\Services\Concerns\ValidatesServiceActors;
+use App\Support\ValueRules;
 use App\Support\WmsPolicy;
 use App\Validation\MasterInput;
 use Config\Database;
@@ -33,9 +34,15 @@ class OpnameService
             return $this->makeFailureResult('Tanggal opname wajib diisi');
         }
 
-        if (!MasterInput::isValidIsoDate($data['opname_date'])) {
-            return $this->makeFailureResult('Tanggal opname harus berformat YYYY-MM-DD');
+        if (ValueRules::notPastIsoDate($data['opname_date']) === null) {
+            return $this->makeFailureResult('Tanggal opname harus berformat YYYY-MM-DD dan tidak boleh sebelum hari ini');
         }
+
+        $notes = MasterInput::cleanOptional($data['notes'] ?? null);
+        if ($notes === false || ($notes !== null && mb_strlen($notes) > 65535)) {
+            return $this->makeFailureResult('Catatan opname maksimal 65535 karakter');
+        }
+        $data['notes'] = $notes;
 
         return $this->runServiceTransaction(
             fn () => $this->insertOpnameSession($data, $actor),

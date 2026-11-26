@@ -51,7 +51,7 @@ class StockService
     public function getStockMutations(): array
     {
         $inbound = $this->db
-            ->table('inbound_headers ih')
+            ->table('inbound ih')
             ->select("
                 ih.id_inbound,
                 ih.reception_number AS document_number,
@@ -64,7 +64,7 @@ class StockService
             ->getResultArray();
 
         $outbound = $this->db
-            ->table('outbound_headers oh')
+            ->table('outbound oh')
             ->select("
                 oh.id_outbound,
                 oh.delivery_number AS document_number,
@@ -273,7 +273,7 @@ class StockService
                 pb.*,
                 rl.rack_code AS rack_location_code
             ')
-            ->join('rack_locations rl', 'rl.id_rack = pb.id_rack', 'left')
+            ->join('rack rl', 'rl.id_rack = pb.id_rack', 'left')
             ->where('pb.id_product', $productId)
             ->orderBy('pb.expiry_date', 'ASC')
             ->get()

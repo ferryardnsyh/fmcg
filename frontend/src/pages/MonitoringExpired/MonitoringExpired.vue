@@ -80,13 +80,13 @@
 
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light text-uppercase fs-7">
+            <thead class="table-light fs-7">
               <tr>
                 <th class="py-3 ps-3">No</th>
                 <th class="py-3">Produk</th>
-                <th class="py-3">Batch No</th>
+                <th class="py-3">Nomor Batch</th>
                 <th class="py-3">Stok</th>
-                <th class="py-3">Tanggal Expired</th>
+                <th class="py-3">Tanggal Kedaluwarsa</th>
                 <th class="py-3 pe-3">Sisa Hari</th>
               </tr>
             </thead>

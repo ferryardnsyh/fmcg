@@ -96,7 +96,7 @@ final class OutboundStage2Test extends CIUnitTestCase
     {
         $legacyIds = [10, 11, 28];
 
-        $existing = $this->db->table('outbound_headers')
+        $existing = $this->db->table('outbound')
             ->whereIn('id_outbound', $legacyIds)
             ->countAllResults();
         if ($existing > 0) {
@@ -123,7 +123,7 @@ final class OutboundStage2Test extends CIUnitTestCase
         $batchId = (int)$this->db->insertID();
 
         foreach ($legacyIds as $id) {
-            $this->db->table('outbound_headers')->insert([
+            $this->db->table('outbound')->insert([
                 'id_outbound'     => $id,
                 'delivery_number' => 'LEGACY-OUT-' . str_pad((string)$id, 5, '0', STR_PAD_LEFT),
                 'delivery_date'   => '2026-01-10',
@@ -213,7 +213,7 @@ final class OutboundStage2Test extends CIUnitTestCase
 
     private function header(int $id): array
     {
-        $row = $this->db->table('outbound_headers')
+        $row = $this->db->table('outbound')
             ->where('id_outbound', $id)
             ->get()
             ->getRowArray();
@@ -235,7 +235,7 @@ final class OutboundStage2Test extends CIUnitTestCase
 
     private function countHeaders(): int
     {
-        return $this->db->table('outbound_headers')->countAllResults();
+        return $this->db->table('outbound')->countAllResults();
     }
 
     private function countDetails(): int
